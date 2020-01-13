@@ -29,13 +29,13 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
         public void FoldersAreInPlace() {
             using (new CargoJobCollectionTestExecutionContext()) {
                 var errorsAndInfos = new ErrorsAndInfos();
-                var error = CargoHelper.CheckFolder(vContainer.Resolve<IFolderResolver>().Resolve(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos).FullName + "\\", true, false);
+                var error = CargoHelper.CheckFolder(vContainer.Resolve<IFolderResolver>().Resolve(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos).FullName, true);
                 Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
-                Assert.IsTrue(error.Length != 0, "Backslash at end allowed");
-                error = CargoHelper.CheckFolder(vContainer.Resolve<IFolderResolver>().Resolve(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos).FullName + "\\", true, false);
+                Assert.IsTrue(error.Length != 0, "Backslash at end not mandatory");
+                error = CargoHelper.CheckFolder(vContainer.Resolve<IFolderResolver>().Resolve(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos).FullName + "\\\\", true);
                 Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
                 Assert.IsTrue(error.Length != 0, "Double backslash allowed");
-                error = CargoHelper.CheckFolder(vContainer.Resolve<IFolderResolver>().Resolve(@"$(MainUserFolder)", errorsAndInfos).FullName, true, false);
+                error = CargoHelper.CheckFolder(vContainer.Resolve<IFolderResolver>().Resolve(@"$(MainUserFolder)", errorsAndInfos).FullName, true);
                 Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
                 Assert.IsTrue(error.Length != 0, "Path outside playground is allowed");
             }
@@ -76,6 +76,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
         public void CanLoadAndSaveSample() {
             using var context = new CargoJobCollectionTestExecutionContext();
             var sampleRootFolder = context.SampleRootFolder;
+            new Folder(sampleRootFolder).SubFolder("Log").CreateIfNecessary();
             var sourceFolder = sampleRootFolder + @"\";
             const string sourceFile = "CargoJobs1.xml";
             var destFile = sampleRootFolder + @"\Log\CargoJobs1.xml";
@@ -130,6 +131,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
         public void CanProcessFirstDay() {
             using var context = new CargoJobCollectionTestExecutionContext();
             InitCase456(context, out _, out var sampleFileSystemRootFolder, out var cargoJobs, "");
+            new Folder(sampleFileSystemRootFolder).SubFolder("Traveller").SubFolder("Webdev").CreateIfNecessary();
             var webZipFile = sampleFileSystemRootFolder + @"\Traveller\Webdev\webseiten100825.7zip";
             Assert.IsFalse(File.Exists(webZipFile), "Web zip file exists.");
             var crypticKeyProvider = new FakeCrypticKeyProvider();
@@ -189,6 +191,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
             var crypticKeyProvider = new FakeCrypticKeyProvider();
             var crypticKey = crypticKeyProvider.GetCrypticKey("", "");
             var accessCodes = AccessCodes();
+            new Folder(context.SampleFileSystemRootFolder).SubFolder("Traveller").SubFolder("Wamp").SubFolder("download").CreateIfNecessary();
             PrepareThirdDay(context, runner, subRunner, detailRunner, crypticKey, accessCodes, out _, out var sampleFileSystemRootFolder, out var cargoJobs);
             File.Delete(context.SampleFileSystemRootFolder + @"\Traveller\Wamp\download\webseiten100825.7zip");
             File.Delete(context.SampleFileSystemRootFolder + @"\Traveller\Wamp\download\webseiten100826.7zip");
@@ -222,6 +225,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
             var accessCodes = AccessCodes();
             PrepareFourthDay(context, runner, subRunner, detailRunner, crypticKey, accessCodes, out _, out var sampleFileSystemRootFolder, out var cargoJobs);
             InitCase456(context, out _, out sampleFileSystemRootFolder, out cargoJobs, "");
+            new Folder(sampleFileSystemRootFolder).SubFolder("Traveller").SubFolder("Download").CreateIfNecessary();
             var downloadedWebZipFile = sampleFileSystemRootFolder + @"\Traveller\Download\webseiten100825.7zip";
             Assert.IsFalse(File.Exists(downloadedWebZipFile), "Downloaded web zip exists.");
             var currentDate = new DateTime(2010, 8, 28);
@@ -320,7 +324,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
         }
 
         internal void CheckFolder(string folder) {
-            var error = CargoHelper.CheckFolder(folder, true, false);
+            var error = CargoHelper.CheckFolder(folder, true);
             Assert.IsTrue(error.Length == 0, error);
         }
 

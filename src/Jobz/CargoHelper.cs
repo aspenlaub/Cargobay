@@ -20,7 +20,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             vFolderResolver = folderResolver;
         }
 
-        public static string CheckFolder(string folder, bool test, bool createAutomatically) {
+        public static string CheckFolder(string folder, bool test) {
             if (folder[^1] != '\\') {
                 return string.Format(Resources.FolderDoesNotEndWithBackslash, folder);
             }
@@ -34,12 +34,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             if (Directory.Exists(folder)) {
                 return string.Empty;
             }
-            if (createAutomatically) {
-                Directory.CreateDirectory(folder);
-            } else {
-                return string.Format(Resources.FolderDoesNotExist, folder);
-            }
 
+            Directory.CreateDirectory(folder);
             return string.Empty;
         }
 
@@ -55,7 +51,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
         }
 
         public static DirectoryInfo DirInfo(string folder, out string error) {
-            error = CheckFolder(folder, false, false);
+            error = CheckFolder(folder, false);
             return new DirectoryInfo(folder);
         }
 

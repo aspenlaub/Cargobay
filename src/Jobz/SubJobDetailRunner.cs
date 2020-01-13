@@ -74,9 +74,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
 
         private bool Zip(DateTime today, Job job, SubJob subJob, IApplicationCommandExecutionContext context, CrypticKey crypticKey) {
             var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
-            CargoHelper.CheckFolder(folder, false, false);
+            CargoHelper.CheckFolder(folder, false);
             var destinationFolder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedDestinationFolder) + '\\';
-            CargoHelper.CheckFolder(destinationFolder, false, true);
+            CargoHelper.CheckFolder(destinationFolder, false);
             var fileName = subJob.Wildcard;
             const string ending = ".7zip";
             fileName = fileName.Replace(".*zip", ending);

@@ -19,7 +19,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
 
         private void CreateCleanUpDetails(SubJob subJob, Job job, out string error) {
             var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
-            error = CargoHelper.CheckFolder(folder, false, false);
+            error = CargoHelper.CheckFolder(folder, false);
             if (error.Length != 0) {
                 return;
             }
