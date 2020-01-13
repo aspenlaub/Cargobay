@@ -1,0 +1,53 @@
+using System.Collections.ObjectModel;
+using Aspenlaub.Net.GitHub.CSharp.Cargobay.Components;
+using Aspenlaub.Net.GitHub.CSharp.Cargobay.Entities;
+using Aspenlaub.Net.GitHub.CSharp.Cargobay.Interfaces;
+using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
+using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
+using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
+using Autofac;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test.Components {
+    [TestClass]
+    public class JobFolderAdjusterTest {
+        [TestMethod]
+        public void CanAdjustJobFolders() {
+            var container = new ContainerBuilder().UseCargobay().Build();
+            var sut = container.Resolve<IJobFolderAdjuster>();
+            var job = new Job {
+                LogicalFolder = "$(CSharp)",
+                LogicalDestinationFolder = @"$(CSharp)\Cargobay",
+                SubJobs = new ObservableCollection<SubJob> {
+                    new SubJob {
+                        LogicalFolder = @"$(CSharp)\Cargobay\Components",
+                        LogicalDestinationFolder = @"$(CSharp)\Cargobay\Interfaces"
+                    },
+
+                    new SubJob {
+                        LogicalFolder = @"c:\temp\",
+                        LogicalDestinationFolder = @"d:\temp\"
+                    }
+                }
+            };
+            Assert.AreEqual(job.FolderAdjustmentState, FolderAdjustmentState.NotAdjusted);
+            Assert.AreEqual(job.SubJobs[0].FolderAdjustmentState, FolderAdjustmentState.NotAdjusted);
+            var errorsAndInfos = new ErrorsAndInfos();
+            sut.AdjustJobAndSubFolders(job, errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
+            var resolver = container.Resolve<IFolderResolver>();
+            var cSharpFolder = resolver.Resolve("$(CSharp)", errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
+            Assert.AreEqual(job.FolderAdjustmentState, FolderAdjustmentState.Adjusted);
+            Assert.AreEqual(job.SubJobs[0].FolderAdjustmentState, FolderAdjustmentState.Adjusted);
+            Assert.AreEqual(job.SubJobs[1].FolderAdjustmentState, FolderAdjustmentState.Adjusted);
+            Assert.AreEqual(cSharpFolder.FullName, job.AdjustedFolder);
+            Assert.AreEqual(cSharpFolder.FullName + @"\Cargobay", job.AdjustedDestinationFolder);
+            Assert.AreEqual(cSharpFolder.FullName + @"\Cargobay\Components", job.SubJobs[0].AdjustedFolder);
+            Assert.AreEqual(cSharpFolder.FullName + @"\Cargobay\Interfaces", job.SubJobs[0].AdjustedDestinationFolder);
+            var drive = cSharpFolder.FullName[0];
+            Assert.AreEqual(drive + @":\temp", job.SubJobs[1].AdjustedFolder);
+            Assert.AreEqual(@"d:\temp", job.SubJobs[1].AdjustedDestinationFolder);
+        }
+    }
+}

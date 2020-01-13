@@ -1,0 +1,68 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29519.87
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cargobay", "Cargobay.csproj", "{78C3B290-ECE4-4108-839A-6723D1A9B514}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cargobay.Samples", "Samples\Cargobay.Samples.csproj", "{8BB625CF-FCCC-43EE-BA94-FC4879153E99}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cargobay.Test", "Test\Cargobay.Test.csproj", "{3D6B9265-68B6-46E0-A61C-7404F0DEC0F2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{78C3B290-ECE4-4108-839A-6723D1A9B514}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78C3B290-ECE4-4108-839A-6723D1A9B514}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78C3B290-ECE4-4108-839A-6723D1A9B514}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{78C3B290-ECE4-4108-839A-6723D1A9B514}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{78C3B290-ECE4-4108-839A-6723D1A9B514}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{78C3B290-ECE4-4108-839A-6723D1A9B514}.Debug|x86.Build.0 = Debug|Any CPU
+		{78C3B290-ECE4-4108-839A-6723D1A9B514}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78C3B290-ECE4-4108-839A-6723D1A9B514}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78C3B290-ECE4-4108-839A-6723D1A9B514}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{78C3B290-ECE4-4108-839A-6723D1A9B514}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{78C3B290-ECE4-4108-839A-6723D1A9B514}.Release|x86.ActiveCfg = Release|Any CPU
+		{78C3B290-ECE4-4108-839A-6723D1A9B514}.Release|x86.Build.0 = Release|Any CPU
+		{8BB625CF-FCCC-43EE-BA94-FC4879153E99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BB625CF-FCCC-43EE-BA94-FC4879153E99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BB625CF-FCCC-43EE-BA94-FC4879153E99}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{8BB625CF-FCCC-43EE-BA94-FC4879153E99}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{8BB625CF-FCCC-43EE-BA94-FC4879153E99}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8BB625CF-FCCC-43EE-BA94-FC4879153E99}.Debug|x86.Build.0 = Debug|Any CPU
+		{8BB625CF-FCCC-43EE-BA94-FC4879153E99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BB625CF-FCCC-43EE-BA94-FC4879153E99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BB625CF-FCCC-43EE-BA94-FC4879153E99}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{8BB625CF-FCCC-43EE-BA94-FC4879153E99}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{8BB625CF-FCCC-43EE-BA94-FC4879153E99}.Release|x86.ActiveCfg = Release|Any CPU
+		{8BB625CF-FCCC-43EE-BA94-FC4879153E99}.Release|x86.Build.0 = Release|Any CPU
+		{3D6B9265-68B6-46E0-A61C-7404F0DEC0F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D6B9265-68B6-46E0-A61C-7404F0DEC0F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D6B9265-68B6-46E0-A61C-7404F0DEC0F2}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{3D6B9265-68B6-46E0-A61C-7404F0DEC0F2}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{3D6B9265-68B6-46E0-A61C-7404F0DEC0F2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3D6B9265-68B6-46E0-A61C-7404F0DEC0F2}.Debug|x86.Build.0 = Debug|Any CPU
+		{3D6B9265-68B6-46E0-A61C-7404F0DEC0F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D6B9265-68B6-46E0-A61C-7404F0DEC0F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D6B9265-68B6-46E0-A61C-7404F0DEC0F2}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{3D6B9265-68B6-46E0-A61C-7404F0DEC0F2}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{3D6B9265-68B6-46E0-A61C-7404F0DEC0F2}.Release|x86.ActiveCfg = Release|Any CPU
+		{3D6B9265-68B6-46E0-A61C-7404F0DEC0F2}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BCF45141-F659-4649-AD1D-FEDB0C65940F}
+	EndGlobalSection
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = Cargobay.vsmdi
+	EndGlobalSection
+EndGlobal

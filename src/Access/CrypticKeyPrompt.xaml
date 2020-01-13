@@ -1,0 +1,16 @@
+﻿<Window x:Class="Aspenlaub.Net.GitHub.CSharp.Cargobay.Access.CrypticKeyPrompt"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="CrypticKeyPrompt" Width="348" Height="297">
+    <StackPanel Background="DarkGoldenrod" Width="336" Height="264">
+        <Label Foreground="Gold" Height="26">Need encryption key for</Label>
+        <Label Name="ClueLabel" Foreground="Gold" Height="26" />
+        <Label Foreground="Gold" Height="26">Key</Label>
+        <PasswordBox Name="KeyTextBox" Foreground="DarkGoldenrod" Margin="5" Background="Gold" Height="26" />
+        <Button Name="Okay" Height="26" Margin="5" IsDefault="True" Click="Click">_Okay</Button>
+        <Label Foreground="Gold" Height="26">Key Sample</Label>
+        <TextBox Name="KeySampleTextBox" Margin="5,0,5,0" Foreground="DarkGoldenrod" Background="Gold" Height="26" TextChanged="KeySampleTextBox_TextChanged" />
+        <Label Foreground="Gold" Height="26">Hash</Label>
+        <TextBox Name="HashTextBox" Margin="5,0,5,0" Foreground="DarkGoldenrod" Background="Gold" Height="26" />
+    </StackPanel>
+</Window>

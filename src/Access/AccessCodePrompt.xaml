@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Window
+	x:Class="Aspenlaub.Net.GitHub.CSharp.Cargobay.Access.AccessCodePrompt" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Title="AccessCodePrompt" Width="248" Height="257">
+    <StackPanel Background="DarkGoldenrod" Width="236" Height="224">
+        <Label Foreground="Gold" Height="26">Need access codes for</Label> 
+        <Label Name="ClueLabel" Foreground="Gold" Height="26" /> 
+        <Label Foreground="Gold" Height="26">Identification</Label>
+        <TextBox Name="IdentificationTextBox" Margin="5" Foreground="DarkGoldenrod" Background="Gold" Height="26" />
+        <Label Foreground="Gold" Height="26">Password</Label>
+        <PasswordBox Name="PasswordTextBox" Foreground="DarkGoldenrod" Margin="5" Background="Gold" Height="26" />
+        <Button Name="Okay" Height="26" Margin="5" IsDefault="True" Click="Click">_Okay </Button>
+    </StackPanel>
+</Window>

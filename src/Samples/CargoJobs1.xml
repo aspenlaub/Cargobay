@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- V=101 -->
+<CargoJobs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.aspenlaub.net">
+  <Job guid="f1cbbbd5-b418-4b7d-9459-ff2eee9143a2" name="CleanUpWeb" description="Clean up localhost" type="CleanUp" folder="D:\wamp\www\kunden\vvsbigband.de">
+    <SubJob guid="e3d28e44-a683-4a99-bc1f-6923078dfe4b" folder="viper\export" wildcard="*.xml" />
+    <SubJob guid="62399496-60db-4a44-9e3a-38214fd2f3bb" folder="webseiten\viperfisch\questionnaire\temp" wildcard="*.css" />
+    <SubJob guid="675736c3-4148-4ca8-b1ce-2a77e32f560b" folder="webseiten\viperfisch\questionnaire\temp" wildcard="*.gif" />
+    <SubJob guid="1d332976-c3cd-4990-9ae2-0a530ccb63bc" folder="webseiten\viperfisch\questionnaire\temp" wildcard="*.jpg" />
+    <SubJob guid="78ce3a3d-d840-4f1a-b0ef-f62f3300fb20" folder="webseiten\viperfisch\lyrictionnaire\temp" wildcard="*.css" />
+    <SubJob guid="023acf46-08e5-41a4-ba71-d38277a02005" folder="webseiten\viperfisch\lyrictionnaire\temp" wildcard="*.gif" />
+    <SubJob guid="649d1cd2-736c-42ed-9b61-b855f37e834a" folder="webseiten\viperfisch\lyrictionnaire\temp" wildcard="*.jpg" />
+    <SubJob guid="b4c7e260-692a-47d2-9772-5821064e4fa9" folder="webseiten\viperfisch\vierzig\temp" wildcard="*.css" />
+    <SubJob guid="77f75eb3-bd12-4ee2-ac10-7b6cf9b9fa6d" folder="webseiten\viperfisch\vierzig\temp" wildcard="*.gif" />
+    <SubJob guid="c4a479be-734c-4052-a60a-d51a2d8a23eb" folder="webseiten\viperfisch\vierzig\temp" wildcard="*.jpg" />
+    <SubJob guid="6b2c7aa9-a945-461d-b1d8-bcda2ce3cde8" folder="webseiten\viperfisch\vierzig\temp" wildcard="*.htm" />
+    <SubJob guid="63081123-e4bd-4585-ab18-679e7ae09aa5" folder="webseiten\viperfisch\vierzig\temp" wildcard="*.pdf" />
+    <SubJob guid="1c700982-a28d-4fdf-8b2e-ba4cc3ba4cbd" folder="webseiten\viperfisch\vierzig\temp" wildcard="*.txt" />
+    <SubJob guid="c056ad1c-a634-4413-999d-fe8098b7b07b" folder="webseiten\viperfisch\vierzig\admintemp" wildcard="*.css" />
+    <SubJob guid="709d3966-b61f-468c-8cf5-24ae588f825b" folder="webseiten\viperfisch\vierzig\admintemp" wildcard="*.gif" />
+    <SubJob guid="65d5f5f2-5a0c-4a7e-9ad3-cbca27205374" folder="webseiten\viperfisch\vierzig\admintemp" wildcard="*.jpg" />
+    <SubJob guid="8d3c7024-606b-46bb-84ba-9e5396bae1dd" folder="webseiten\viperfisch\vierzig\admintemp" wildcard="*.htm" />
+    <SubJob guid="315777e6-acb0-4567-b076-6e2addd44c19" folder="webseiten\viperfisch\vierzig\admintemp" wildcard="*.pdf" />
+    <SubJob guid="fd11fa64-361a-4c26-a5d1-93b2f47a0ef7" folder="webseiten\viperfisch\vierzig\admintemp" wildcard="*.txt" />
+    <SubJob guid="a4bc7333-bc20-41c4-b718-43bd5b73241b" folder="webseiten\viperfisch\nasenhaar\temp" wildcard="*.css" />
+    <SubJob guid="f014e0b5-f2a9-41b4-9e7a-39778a61b1a0" folder="webseiten\viperfisch\nasenhaar\temp" wildcard="*.gif" />
+    <SubJob guid="0b3c4cb1-4de6-4f2b-8037-9b21bef2eb20" folder="webseiten\viperfisch\nasenhaar\temp" wildcard="*.jpg" />
+    <SubJob guid="ecdef60b-5293-4f80-8798-0d90b9610b4f" folder="webseiten\viperfisch\nasenhaar\temp" wildcard="*.htm" />
+    <SubJob guid="4aa18ca0-5fd7-43cb-b982-3a57655290a3" folder="webseiten\viperfisch\nasenhaar\temp" wildcard="*.pdf" />
+    <SubJob guid="e7598ccf-7481-46c5-900d-0f85541ef8ba" folder="webseiten\viperfisch\nasenhaar\temp" wildcard="*.txt" />
+    <SubJob guid="e34f838b-9805-432f-9422-c0f3f672e8f9" folder="webseiten\viperfisch\nasenhaar\admintemp" wildcard="*.css" />
+    <SubJob guid="aa3364e7-68ba-478e-bec9-1cd6308a5638" folder="webseiten\viperfisch\nasenhaar\admintemp" wildcard="*.gif" />
+    <SubJob guid="558ef810-4b38-4828-bc30-b5a05c460a0b" folder="webseiten\viperfisch\nasenhaar\admintemp" wildcard="*.jpg" />
+    <SubJob guid="9bcf4988-7322-440a-bd3f-053d4968e80a" folder="webseiten\viperfisch\nasenhaar\admintemp" wildcard="*.htm" />
+    <SubJob guid="bce4e16d-c96e-4deb-85ce-f6152ff43502" folder="webseiten\viperfisch\nasenhaar\admintemp" wildcard="*.pdf" />
+    <SubJob guid="5465da20-b53e-465b-b0a2-f871dd52d3a8" folder="webseiten\viperfisch\nasenhaar\admintemp" wildcard="*.txt" />
+    <SubJob guid="40c0839e-e2c4-43ed-8a01-fb7e586e3dd4" folder="webseiten\vvsbigband\temp" wildcard="*.css" />
+    <SubJob guid="addf4a3a-4a2d-45ac-9d3d-bee13fd458bd" folder="webseiten\vvsbigband\temp" wildcard="*.gif" />
+    <SubJob guid="ccd777fe-7ae7-479b-adcd-a24dd08ab0fe" folder="webseiten\vvsbigband\temp" wildcard="*.pdf" />
+    <SubJob guid="88246361-8a54-453d-98d8-4e5d2c678543" folder="webseiten\vvsbigband\temp" wildcard="*.mp3" />
+    <SubJob guid="c6a884e6-0160-4628-9883-2ff3591ef047" folder="webseiten\vvsbigband\js" wildcard=".js" />
+    <SubJob guid="568c77a3-7d02-4f58-a457-3d99b9f51a8c" folder="webseiten\vvsbigband\js" wildcard=".jss" />
+    <SubJob guid="03916d42-2cc3-4932-8a4e-740fb998dfdc" folder="webseiten\vvsbigband\admin\temp" wildcard="*.css" />
+    <SubJob guid="2b8ffe10-0a26-4d52-8d8a-6715405da7ad" folder="webseiten\vvsbigband\admin\temp" wildcard="*.gif" />
+    <SubJob guid="24f3ee62-8c5d-4689-95b5-b44065b1aee2" folder="webseiten\vvsbigband\admin\temp" wildcard="*.jpg" />
+    <SubJob guid="0b52e645-3286-43bd-8022-a920a6357e88" folder="webseiten\vvsbigband\intern\pdfs" wildcard="*.pdf" />
+    <SubJob guid="e93afde2-d14a-49e5-9256-fe3b6836b6f7" folder="webseiten\vvsbigband\intern\midi" wildcard="*.mid" />
+    <SubJob guid="34b57598-d19d-4aba-9019-d09a59c8147d" folder="tcnautilus.de\temp" wildcard="*.css" />
+    <SubJob guid="f6b72f11-53eb-4cb8-803c-59fb4a17664c" folder="tcnautilus.de\temp" wildcard="*.gif" />
+    <SubJob guid="ef8e93aa-7e99-4825-b604-c7f5fd23537a" folder="tcnautilus.de\temp" wildcard="*.jpg" />
+    <SubJob guid="911dbd94-2ffa-46a5-94be-e27ffa4ffb55" folder="tcnautilus.de\temp" wildcard="*.txt" />
+  </Job>
+  <Job guid="6334c8a3-8d13-44b4-9ff0-3454a771db2f" name="ZipWeb" description="Zip localhost" type="Zip">
+    <SubJob guid="11e5ec1b-c7c8-4044-89e4-4ba1fabcad97" folder="D:\wamp\www\kunden\vvsbigband.de" destinationfolder="D:\Users\Wolfgang\WebDev" wildcard="webseiten*.*zip" />
+  </Job>
+  <Job guid="3178d062-bfd0-48db-82e6-8ca087d5ba8b" name="ArchiveNessies" description="Archive nessies" type="TransferChanged">
+    <SubJob guid="7cc5fb84-f422-4075-b724-f508c5a7c300" folder="D:\Users\Wolfgang\Nessies\In Arbeit" destinationfolder="D:\Users\Wolfgang\Nessies\Archiv" wildcard="*.mx*" />
+    <SubJob guid="423118c2-6851-47fd-8737-f7ba034f79d5" folder="D:\Users\Wolfgang\Nessies\In Arbeit" destinationfolder="D:\Users\Wolfgang\Nessies\Archiv" wildcard="*.0*" />
+    <SubJob guid="08c1d07d-74f8-4f7c-b078-cf553d8b0a2e" folder="D:\Users\Wolfgang\Nessies\In Arbeit" destinationfolder="D:\Users\Wolfgang\Nessies\Archiv" wildcard="*.bak" />
+  </Job>
+  <Job guid="ce37f210-f3d2-4e0e-bceb-eec13fa7a664" name="CleanUpNessies" description="Clean up nessies" type="CleanUp" folder="D:\Users\Wolfgang\Nessies\In Arbeit">
+    <SubJob guid="0187ae2c-0149-4c7b-aeb4-b064009589cb" wildcard="*.mxx" />
+    <SubJob guid="a292a278-c642-4bc7-ac66-a4d8c971f671" wildcard="*.0*" />
+    <SubJob guid="c35173d7-777d-4580-99f6-ab6dbf632f9c" wildcard="*FromBar*.mid" />
+    <SubJob guid="85693653-0d0b-48c4-b4ea-132bd11a1ed4" wildcard="*.bak" />
+    <SubJob guid="bb21aec9-7859-4620-90de-31057f64b92f" wildcard="R_*.mid" />
+    <SubJob guid="d0db00c1-4853-44e8-8418-73dd9e01996e" wildcard="I_*.mid" />
+    <SubJob guid="797259cf-2557-4948-a464-5909c073825d" wildcard="D_*.mid" />
+    <SubJob guid="ebf2d7cd-2d32-4e3d-afa3-b0c894411bd4" wildcard="PSR*.mid" />
+  </Job>
+</CargoJobs>

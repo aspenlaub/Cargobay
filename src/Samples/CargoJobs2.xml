@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- V=100 -->
+<CargoJobs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.aspenlaub.net">
+  <Job name="CleanUpWeb" description="Clean up localhost" type="CleanUp" folder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp">
+    <SubJob folder="temp" wildcard="*.css" />
+    <SubJob folder="temp" wildcard="*.gif" />
+    <SubJob folder="temp" wildcard="*.jpg" />
+    <SubJob folder="temp" wildcard="*.htm" />
+    <SubJob folder="temp" wildcard="*.pdf" />
+    <SubJob folder="temp" wildcard="*.txt" />
+    <SubJob folder="mid" wildcard="*.mid" />
+  </Job>
+  <Job name="ZipWamp" description="Zip wamp data" type="Zip">
+    <SubJob folder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp" destinationfolder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Webdev" wildcard="webseiten*.*zip" />
+  </Job>	
+  <Job name="UploadZip" description="Upload zip files" type="Upload">
+    <SubJob folder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Webdev" wildcard="webseiten*.*zip" url="ftp://ftp.localhost/download/" />
+  </Job>	
+  <Job name="DownloadZip" description="Download zip files" type="Download">
+    <SubJob folder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Download" wildcard="webseiten*.*zip" url="ftp://ftp.localhost/download/" />
+  </Job>	
+  <Job name="ArchiveNessies" description="Archive nessies" type="TransferChanged">
+    <SubJob folder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Nessies\In Arbeit" destinationfolder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Nessies\Archiv" wildcard="*.mx*" />
+    <SubJob folder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Nessies\In Arbeit" destinationfolder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Nessies\Archiv" wildcard="*.0*" />
+    <SubJob folder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Nessies\In Arbeit" destinationfolder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Nessies\Archiv" wildcard="*.bak" />
+  </Job>
+  <Job name="CleanUpNessies" description="Clean up nessies" type="CleanUp" folder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Nessies\In Arbeit">
+    <SubJob wildcard="*.mxx" />
+    <SubJob wildcard="*.0*" />
+    <SubJob wildcard="*FromBar*.mid" />
+    <SubJob wildcard="*.bak" />
+    <SubJob wildcard="R_*.mid" />
+    <SubJob wildcard="I_*.mid" />
+    <SubJob wildcard="D_*.mid" />
+    <SubJob wildcard="PSR*.mid" />
+  </Job>
+</CargoJobs>
