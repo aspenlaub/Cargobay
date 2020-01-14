@@ -46,7 +46,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay {
             SelectedJob = JobTree.SelectedItem as Job;
         }
 
-        private void ButtonPreview_Click(object sender, RoutedEventArgs e) {
+        private async void ButtonPreview_Click(object sender, RoutedEventArgs e) {
             if (Controller == null) {
                 return;
             }
@@ -54,14 +54,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay {
             TextBoxError.Text = string.Empty;
             TextBox.Text = string.Empty;
             Cursor = Cursors.Wait;
-            Controller.Execute(typeof(PreviewCommand));
+            await Controller.Execute(typeof(PreviewCommand));
         }
 
-        private void ButtonExecute_Click(object sender, RoutedEventArgs e) {
+        private async void ButtonExecute_Click(object sender, RoutedEventArgs e) {
             TextBoxError.Text = string.Empty;
             TextBox.Text = string.Empty;
             Cursor = Cursors.Wait;
-            Controller.Execute(typeof(ExecuteCommand));
+            await Controller.Execute(typeof(ExecuteCommand));
         }
 
         public void ApplicationFeedbackHandler(IFeedbackToApplication feedback) {
