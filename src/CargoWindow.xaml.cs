@@ -28,16 +28,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay {
             Container = new ContainerBuilder().UseCargobay().Build();
             Controller = new ApplicationCommandController(ApplicationFeedbackHandler);
             CargobayApplication = new CargobayApplication(Controller, Controller, this, this, this, Container.Resolve<IJobFolderAdjuster>(), Container.Resolve<ISecretRepository>());
-            IJobRunner runner = new JobRunner();
-            foreach (var job in CargobayApplication.Jobs.Where(job => runner.IsRightMachine(job))) {
-                JobTree.Items.Add(job);
-            }
 
             Title = "Cargobay - " + Environment.MachineName;
             SelectedJob = null;
             CommandsEnabledOrDisabledHandler();
             CrypticKey = null;
             PasswordProvider = new PasswordProvider();
+
+            Controller.Execute(typeof(RefreshJobsCommand));
         }
 
         private void OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) {
@@ -67,7 +65,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay {
         public void ApplicationFeedbackHandler(IFeedbackToApplication feedback) {
             switch (feedback.Type) {
                 case FeedbackType.CommandExecutionCompleted: {
-                    CommandExecutionCompletedHandler();
+                    CommandExecutionCompletedHandler(feedback.CommandType);
                 }
                 break;
                 case FeedbackType.CommandsEnabledOrDisabled: {
@@ -93,16 +91,21 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay {
             }
         }
 
-        private void CommandExecutionCompletedHandler() {
+        private void CommandExecutionCompletedHandler(Type commandType) {
             if (!Controller.IsMainThread()) { return; }
 
             Cursor = Cursors.Arrow;
+
+            if (commandType == typeof(RefreshJobsCommand)) {
+                UpdateJobTree();
+            }
         }
 
         public void CommandsEnabledOrDisabledHandler() {
             var allCommandsEnabled = Controller.Enabled(typeof(PreviewCommand)) && Controller.Enabled(typeof(ExecuteCommand));
             ButtonPreview.IsEnabled = allCommandsEnabled;
             ButtonExecute.IsEnabled = allCommandsEnabled;
+            ButtonRefreshJobs.IsEnabled = allCommandsEnabled;
         }
 
         public CrypticKey GetCrypticKey(string clue, string sha1) {
@@ -132,6 +135,26 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay {
         private async void Window_ClosedAsync(object sender, EventArgs e) {
             await Controller.AwaitAllAsynchronousTasks();
             Environment.Exit(1);
+        }
+
+        private async void ButtonRefreshJobs_Click(object sender, RoutedEventArgs e) {
+            if (Controller == null) {
+                return;
+            }
+
+            TextBoxError.Text = string.Empty;
+            TextBox.Text = string.Empty;
+            Cursor = Cursors.Wait;
+            await Controller.Execute(typeof(RefreshJobsCommand));
+        }
+
+        private void UpdateJobTree() {
+            JobTree.Items.Clear();
+
+            IJobRunner runner = new JobRunner();
+            foreach (var job in CargobayApplication.Jobs.Where(job => runner.IsRightMachine(job))) {
+                JobTree.Items.Add(job);
+            }
         }
     }
 }

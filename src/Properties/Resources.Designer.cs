@@ -322,6 +322,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to RefreshJobs.
+        /// </summary>
+        internal static string RefreshJobsCommandName {
+            get {
+                return ResourceManager.GetString("RefreshJobsCommandName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to (Machine).
         /// </summary>
         internal static string SecondaryMachine {

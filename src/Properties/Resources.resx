@@ -204,6 +204,9 @@
   <data name="PreviewCommandName" xml:space="preserve">
     <value>Preview</value>
   </data>
+  <data name="RefreshJobsCommandName" xml:space="preserve">
+    <value>RefreshJobs</value>
+  </data>
   <data name="SecondaryMachine" xml:space="preserve">
     <value>(Machine)</value>
   </data>

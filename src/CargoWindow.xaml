@@ -76,15 +76,22 @@
 				Margin="0,0,5,0" 
 				Padding="40,0,40,0" 
 				IsEnabled="False"
-				Click="ButtonPreview_Click">_Vorschau
+				Click="ButtonPreview_Click">Pre_view
 			</Button>
 			<Button 
 				Name="ButtonExecute" 
 				Margin="0,0,5,0" 
 				Padding="40,0,40,0" 
 				IsEnabled="False"
-				Click="ButtonExecute_Click">_Ausführen
+				Click="ButtonExecute_Click">E_xecute
 			</Button>
+            <Button 
+                Name="ButtonRefreshJobs" 
+                Margin="0,0,5,0" 
+                Padding="40,0,40,0" 
+                IsEnabled="False"
+                Click="ButtonRefreshJobs_Click">Re_fresh Jobs
+            </Button>
 		</StackPanel>
 	</Grid>
 </Window>
