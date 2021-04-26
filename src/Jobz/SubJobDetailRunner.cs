@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
@@ -161,40 +162,43 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             }
         }
 
-        private bool Download(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context, Dictionary<string, Login> accessCodes) {
+        private async Task<bool> DownloadAsync(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context, Dictionary<string, Login> accessCodes) {
             var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
-            if (vCargoHelper.Download(subJob.Url + subJobDetail.FileName, folder + subJobDetail.FileName, false, accessCodes, out var error, out var couldConnect)) {
+            var error = new CargoString();
+            var couldConnect = new CargoBool();
+            if (await vCargoHelper.DownloadAsync(subJob.Url + subJobDetail.FileName, folder + subJobDetail.FileName, false, accessCodes, error, couldConnect)) {
                 context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + Properties.Resources.DownloadSuccessful });
                 return true;
             }
 
-            if (!couldConnect) {
+            if (!couldConnect.Value) {
                 context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + Properties.Resources.NoConnection });
                 return false;
             }
 
             context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + Properties.Resources.DownloadFailed });
-            if (error.Length != 0) {
-                context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = error });
+            if (error.Value.Length != 0) {
+                context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = error.Value });
             }
             return false;
         }
 
-        private bool Upload(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context, Dictionary<string, Login> accessCodes) {
+        private async Task<bool> UploadAsync(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context, Dictionary<string, Login> accessCodes) {
             var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
-            if (vCargoHelper.Upload(subJob.Url + subJobDetail.FileName, folder + subJobDetail.FileName, accessCodes, out var error)) {
+            var error = new CargoString();
+            if (await vCargoHelper.UploadAsync(subJob.Url + subJobDetail.FileName, folder + subJobDetail.FileName, accessCodes, error)) {
                 context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + Properties.Resources.UploadSuccessful });
                 return true;
             }
 
             context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + Properties.Resources.UploadFailed });
-            if (error.Length != 0) {
-                context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + error });
+            if (error.Value.Length != 0) {
+                context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + error.Value });
             }
             return false;
         }
 
-        public bool Run(SubJobDetail subJobDetail, DateTime today, Job job, SubJob subJob, IApplicationCommandExecutionContext context, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
+        public async Task<bool> RunAsync(SubJobDetail subJobDetail, DateTime today, Job job, SubJob subJob, IApplicationCommandExecutionContext context, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
             Preview(subJobDetail, context);
             switch (job.JobType) {
                 case CargoJobType.CleanUp: {
@@ -207,10 +211,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
                         return Zip(today, job, subJob, context, crypticKey);
                     }
                 case CargoJobType.Upload: {
-                        return Upload(subJobDetail, job, subJob, context, accessCodes);
+                        return await UploadAsync(subJobDetail, job, subJob, context, accessCodes);
                     }
                 case CargoJobType.Download: {
-                        return Download(subJobDetail, job, subJob, context, accessCodes);
+                        return await DownloadAsync(subJobDetail, job, subJob, context, accessCodes);
                     }
             }
 

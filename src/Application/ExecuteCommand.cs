@@ -42,9 +42,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Application {
                 sites.Add(site);
             }
 
-            return Task.Run(() => {
-                JobRunningApplication.Run(job, crypticKey, accessCodes);
-            });
+            return JobRunningApplication.RunAsync(job, crypticKey, accessCodes);
         }
     }
 }

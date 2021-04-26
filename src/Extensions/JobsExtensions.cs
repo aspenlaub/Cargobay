@@ -1,18 +1,21 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Extensions {
     public static class JobsExtensions {
-        public static CargoJobs Load(IXmlDeserializer xmlDeserializer, IJobFolderAdjuster jobFolderAdjuster, string folder, string utf8FileName, IErrorsAndInfos errorsAndInfos) {
+        public static async Task<CargoJobs> LoadAsync(IXmlDeserializer xmlDeserializer, IJobFolderAdjuster jobFolderAdjuster, string folder, string utf8FileName, IErrorsAndInfos errorsAndInfos) {
             var fileName = ReplaceInvalidCharacters(utf8FileName);
             if (!File.Exists(folder + fileName)) { return new CargoJobs(); }
 
-            var jobs = xmlDeserializer.Deserialize<CargoJobs>(File.ReadAllText(folder + fileName, Encoding.UTF8));
-            jobs.ForEach(job => jobFolderAdjuster.AdjustJobAndSubFolders(job, errorsAndInfos));
+            var jobs = xmlDeserializer.Deserialize<CargoJobs>(await File.ReadAllTextAsync(folder + fileName, Encoding.UTF8));
+            foreach (var job in jobs) {
+                await jobFolderAdjuster.AdjustJobAndSubFoldersAsync(job, errorsAndInfos);
+            }
             return jobs;
         }
 

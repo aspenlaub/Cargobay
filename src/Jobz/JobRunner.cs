@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Vishizhukel.Application;
@@ -27,7 +28,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = (caption + "            ").Substring(0, 12) + " : " + value });
         }
 
-        public void Preview(Job job, bool forExecutionLog, IApplicationCommandExecutionContext context, ISubJobRunner runner, ISubJobDetailRunner detailRunner, Dictionary<string, Login> accessCodes) {
+        public async Task PreviewAsync(Job job, bool forExecutionLog, IApplicationCommandExecutionContext context, ISubJobRunner runner, ISubJobDetailRunner detailRunner, Dictionary<string, Login> accessCodes) {
             context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "Job" });
             if (job.Description.Length != 0) {
                 if (forExecutionLog) {
@@ -61,14 +62,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             }
             ExecutionLogEntry(context, Properties.Resources.Type, Enum.GetName(typeof(CargoJobType), job.JobType));
             foreach (var subJob in job.SubJobs) {
-                runner.Preview(subJob, job, false, context, detailRunner, accessCodes);
+                await runner.PreviewAsync(subJob, job, false, context, detailRunner, accessCodes);
             }
         }
 
-        public bool Run(Job job, DateTime today, IApplicationCommandExecutionContext context, ISubJobRunner runner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
+        public async Task<bool> RunAsync(Job job, DateTime today, IApplicationCommandExecutionContext context, ISubJobRunner runner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
             foreach (var nextSubJob in job.SubJobs) {
-                runner.Preview(nextSubJob, job, true, context, detailRunner, accessCodes);
-                if (!runner.Run(nextSubJob, today, job, context, detailRunner, crypticKey, accessCodes)) {
+                await runner.PreviewAsync(nextSubJob, job, true, context, detailRunner, accessCodes);
+                if (!await runner.RunAsync(nextSubJob, today, job, context, detailRunner, crypticKey, accessCodes)) {
                     return false;
                 }
             }

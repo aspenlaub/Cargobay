@@ -7,7 +7,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
         protected const string Key = "ThisIsNotAKey";
 
         public CrypticKey GetCrypticKey(string clue, string sha1) {
-            return new CrypticKey { Key = Key, Sha1 = new Sha1Encrypter().Encrypt(Key) };
+            return new() { Key = Key, Sha1 = new Sha1Encrypter().Encrypt(Key) };
         }
 
         public CrypticKey GetCrypticKey(string clue, string sha1, ICrypticKeyPrompt crypticKeyPrompt) {

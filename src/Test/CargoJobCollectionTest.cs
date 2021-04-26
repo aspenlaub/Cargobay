@@ -26,23 +26,23 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
         }
 
         [TestMethod]
-        public void FoldersAreInPlace() {
+        public async Task FoldersAreInPlace() {
             using (new CargoJobCollectionTestExecutionContext()) {
                 var errorsAndInfos = new ErrorsAndInfos();
-                var error = CargoHelper.CheckFolder(vContainer.Resolve<IFolderResolver>().Resolve(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos).FullName, true);
+                var error = CargoHelper.CheckFolder((await vContainer.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos)).FullName, true);
                 Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
                 Assert.IsTrue(error.Length != 0, "Backslash at end not mandatory");
-                error = CargoHelper.CheckFolder(vContainer.Resolve<IFolderResolver>().Resolve(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos).FullName + "\\\\", true);
+                error = CargoHelper.CheckFolder((await vContainer.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos)).FullName + "\\\\", true);
                 Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
                 Assert.IsTrue(error.Length != 0, "Double backslash allowed");
-                error = CargoHelper.CheckFolder(vContainer.Resolve<IFolderResolver>().Resolve(@"$(MainUserFolder)", errorsAndInfos).FullName, true);
+                error = CargoHelper.CheckFolder((await vContainer.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)", errorsAndInfos)).FullName, true);
                 Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
                 Assert.IsTrue(error.Length != 0, "Path outside playground is allowed");
             }
         }
 
         [TestMethod]
-        public void CanSaveSimpleJobCollection() {
+        public async Task CanSaveSimpleJobCollection() {
             using var context = new CargoJobCollectionTestExecutionContext();
             var jobs = new CargoJobs();
             var job = new Job {
@@ -57,7 +57,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
             job.SubJobs.Add(subJob);
             var errorsAndInfos = new ErrorsAndInfos();
             var adjuster = vContainer.Resolve<IJobFolderAdjuster>();
-            adjuster.AdjustJobAndSubFolders(job, errorsAndInfos);
+            await adjuster.AdjustJobAndSubFoldersAsync(job, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
             jobs.Add(job);
             jobs.Add(job);
@@ -66,14 +66,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
             File.Delete(destFolder + destFile);
             Assert.IsTrue(jobs.Save(vContainer.Resolve<IXmlSerializer>(), destFolder + destFile));
             errorsAndInfos = new ErrorsAndInfos();
-            var jobsRev = JobsExtensions.Load(vContainer.Resolve<IXmlDeserializer>(), vContainer.Resolve<IJobFolderAdjuster>(), destFolder, destFile, errorsAndInfos);
+            var jobsRev = await JobsExtensions.LoadAsync(vContainer.Resolve<IXmlDeserializer>(), vContainer.Resolve<IJobFolderAdjuster>(), destFolder, destFile, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
             Assert.IsTrue(jobsRev.Count == 2);
             File.Delete(destFolder + destFile);
         }
 
         [TestMethod]
-        public void CanLoadAndSaveSample() {
+        public async Task CanLoadAndSaveSample() {
             using var context = new CargoJobCollectionTestExecutionContext();
             var sampleRootFolder = context.SampleRootFolder;
             new Folder(sampleRootFolder).SubFolder("Log").CreateIfNecessary();
@@ -82,17 +82,17 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
             var destFile = sampleRootFolder + @"\Log\CargoJobs1.xml";
             File.Delete(destFile);
             var errorsAndInfos = new ErrorsAndInfos();
-            var cargoJobs = JobsExtensions.Load(vContainer.Resolve<IXmlDeserializer>(), vContainer.Resolve<IJobFolderAdjuster>(), sourceFolder, sourceFile, errorsAndInfos);
+            var cargoJobs = await JobsExtensions.LoadAsync(vContainer.Resolve<IXmlDeserializer>(), vContainer.Resolve<IJobFolderAdjuster>(), sourceFolder, sourceFile, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
             Assert.IsTrue(cargoJobs.Count == 4, "Four jobs expected, read " + cargoJobs.Count);
             Assert.IsTrue(cargoJobs[0].SubJobs.Count > 20);
             Assert.IsTrue(cargoJobs[0].SubJobs[0].LogicalFolder.Length > 5);
             cargoJobs.Save(vContainer.Resolve<IXmlSerializer>(), destFile);
-            var sourceContents = RemoveVersionNumber(File.ReadAllText(sourceFolder + sourceFile, Encoding.UTF8));
+            var sourceContents = RemoveVersionNumber(await File.ReadAllTextAsync(sourceFolder + sourceFile, Encoding.UTF8));
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
             const string search = "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"";
             const string replace = "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"";
-            var destinationContents = File.ReadAllText(destFile, Encoding.UTF8).Replace(search, replace);
+            var destinationContents = (await File.ReadAllTextAsync(destFile, Encoding.UTF8)).Replace(search, replace);
             int i;
             for (i = 0; i < sourceContents.Length && sourceContents[i] == destinationContents[i]; i++) { }
 
@@ -100,57 +100,61 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
             File.Delete(destFile);
         }
 
-        private void InitCase456(CargoJobCollectionTestExecutionContext context, out string sampleRootFolder, out string sampleFileSystemRootFolder, out List<Job> cargoJobs, string addFileName) {
-            sampleRootFolder = context.SampleRootFolder;
-            sampleFileSystemRootFolder = context.SampleFileSystemRootFolder;
+        private async Task InitCase456Async(CargoJobCollectionTestExecutionContext context, CargoString sampleRootFolder, CargoString sampleFileSystemRootFolder, List<Job> cargoJobs, string addFileName) {
+            sampleRootFolder.Value = context.SampleRootFolder;
+            sampleFileSystemRootFolder.Value = context.SampleFileSystemRootFolder;
             if (addFileName.Length != 0) {
-                addFileName = sampleFileSystemRootFolder + addFileName;
-                File.WriteAllText(addFileName, @"This is a file that was added.", Encoding.UTF8);
+                addFileName = sampleFileSystemRootFolder.Value + addFileName;
+                await File.WriteAllTextAsync(addFileName, @"This is a file that was added.", Encoding.UTF8);
             }
-            var sourceFolder = sampleRootFolder + @"\";
+            var sourceFolder = sampleRootFolder.Value + @"\";
             const string sourceFile = "CargoJobs2.xml";
             var errorsAndInfos = new ErrorsAndInfos();
-            var deserializedJobs = JobsExtensions.Load(vContainer.Resolve<IXmlDeserializer>(), vContainer.Resolve<IJobFolderAdjuster>(), sourceFolder, sourceFile, errorsAndInfos);
+            var deserializedJobs = await JobsExtensions.LoadAsync(vContainer.Resolve<IXmlDeserializer>(), vContainer.Resolve<IJobFolderAdjuster>(), sourceFolder, sourceFile, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
-            cargoJobs = deserializedJobs;
+            cargoJobs.Clear();
+            cargoJobs.AddRange(deserializedJobs);
         }
 
 
         private Dictionary<string, Login> AccessCodes() {
-            var accessCodes = new Dictionary<string, Login> {[@"ftp://ftp.localhost"] = new Login { Identification = "guest", Password = "guest" }};
+            var accessCodes = new Dictionary<string, Login> {[@"ftp://ftp.localhost"] = new() { Identification = "guest", Password = "guest" }};
             return accessCodes;
         }
 
-        private void RunJob(List<Job> cargoJobs, string name, DateTime currentDate, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
+        private async Task RunJobAsync(List<Job> cargoJobs, string name, DateTime currentDate, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
             var nextJob = cargoJobs.Find(x => x.Name == name);
             Assert.IsNotNull(nextJob, "Job '" + name + "' not found");
-            Assert.IsTrue(runner.Run(nextJob, currentDate, new FakeCommandExecutionContext(), subRunner, detailRunner, crypticKey, accessCodes), "Job '" + name + "' could not be processed");
+            Assert.IsTrue(await runner.RunAsync(nextJob, currentDate, new FakeCommandExecutionContext(), subRunner, detailRunner, crypticKey, accessCodes), "Job '" + name + "' could not be processed");
         }
 
         [TestMethod]
-        public void CanProcessFirstDay() {
+        public async Task CanProcessFirstDay() {
             using var context = new CargoJobCollectionTestExecutionContext();
-            InitCase456(context, out _, out var sampleFileSystemRootFolder, out var cargoJobs, "");
-            new Folder(sampleFileSystemRootFolder).SubFolder("Traveller").SubFolder("Webdev").CreateIfNecessary();
-            var webZipFile = sampleFileSystemRootFolder + @"\Traveller\Webdev\webseiten100825.7zip";
+            var sampleRootFolder = new CargoString();
+            var sampleFileSystemRootFolder = new CargoString();
+            var cargoJobs = new List<Job>();
+            await InitCase456Async(context, sampleRootFolder, sampleFileSystemRootFolder, cargoJobs, "");
+            new Folder(sampleFileSystemRootFolder.Value).SubFolder("Traveller").SubFolder("Webdev").CreateIfNecessary();
+            var webZipFile = sampleFileSystemRootFolder.Value + @"\Traveller\Webdev\webseiten100825.7zip";
             Assert.IsFalse(File.Exists(webZipFile), "Web zip file exists.");
             var crypticKeyProvider = new FakeCrypticKeyProvider();
             var crypticKey = crypticKeyProvider.GetCrypticKey("", "");
             var accessCodes = AccessCodes();
-            RunFirstDay(cargoJobs, new JobRunner(), new SubJobRunner(), new SubJobDetailRunner(), crypticKey, accessCodes);
+            await RunFirstDayAsync(cargoJobs, new JobRunner(), new SubJobRunner(), new SubJobDetailRunner(), crypticKey, accessCodes);
             Assert.IsTrue(File.Exists(webZipFile), "Web zip file does not exist.");
         }
 
-        private void RunFirstDay(List<Job> cargoJobs, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
+        private async Task RunFirstDayAsync(List<Job> cargoJobs, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
             var currentDate = new DateTime(2010, 8, 25);
-            RunJob(cargoJobs, "CleanUpWeb", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
-            RunJob(cargoJobs, "ZipWamp", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
-            RunJob(cargoJobs, "ArchiveNessies", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
-            RunJob(cargoJobs, "CleanUpNessies", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
+            await RunJobAsync(cargoJobs, "CleanUpWeb", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
+            await RunJobAsync(cargoJobs, "ZipWamp", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
+            await RunJobAsync(cargoJobs, "ArchiveNessies", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
+            await RunJobAsync(cargoJobs, "CleanUpNessies", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
         }
 
         [TestMethod]
-        public void CanProcessSecondDay() {
+        public async Task CanProcessSecondDay() {
             using var context = new CargoJobCollectionTestExecutionContext();
             var runner = new JobRunner();
             var subRunner = new SubJobRunner();
@@ -158,32 +162,35 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
             var crypticKeyProvider = new FakeCrypticKeyProvider();
             var crypticKey = crypticKeyProvider.GetCrypticKey("", "");
             var accessCodes = AccessCodes();
-            PrepareSecondDay(context, runner, subRunner, detailRunner, crypticKey, accessCodes, out _, out var sampleFileSystemRootFolder, out var cargoJobs);
-            InitCase456(context, out _, out sampleFileSystemRootFolder, out cargoJobs, @"\Traveller\Wamp\tank.php");
-            var webZipFile = sampleFileSystemRootFolder + @"\Traveller\Webdev\webseiten100825.7zip";
+            var sampleRootFolder = new CargoString();
+            var sampleFileSystemRootFolder = new CargoString();
+            var cargoJobs = new List<Job>();
+            await PrepareSecondDayAsync(context, runner, subRunner, detailRunner, crypticKey, accessCodes, sampleRootFolder, sampleFileSystemRootFolder, cargoJobs);
+            await InitCase456Async(context, sampleRootFolder, sampleFileSystemRootFolder, cargoJobs, @"\Traveller\Wamp\tank.php");
+            var webZipFile = sampleFileSystemRootFolder.Value + @"\Traveller\Webdev\webseiten100825.7zip";
             Assert.IsTrue(File.Exists(webZipFile), "Preceding test case failed.");
-            webZipFile = sampleFileSystemRootFolder + @"\Traveller\Webdev\webseiten100826.7zip";
-            var uploadWebZipFile = sampleFileSystemRootFolder + @"\Traveller\Wamp\download\webseiten100825.7zip";
+            webZipFile = sampleFileSystemRootFolder.Value + @"\Traveller\Webdev\webseiten100826.7zip";
+            var uploadWebZipFile = sampleFileSystemRootFolder.Value + @"\Traveller\Wamp\download\webseiten100825.7zip";
             Assert.IsFalse(File.Exists(webZipFile), "Web zip file exists.");
             Assert.IsFalse(File.Exists(uploadWebZipFile), "Uploaded web zip file exists.");
-            RunSecondDay(cargoJobs, runner, subRunner, detailRunner, crypticKey, accessCodes);
+            await RunSecondDayAsync(cargoJobs, runner, subRunner, detailRunner, crypticKey, accessCodes);
             Assert.IsTrue(File.Exists(webZipFile), "Web zip file does not exist.");
             Assert.IsTrue(File.Exists(uploadWebZipFile), "Uploaded web zip file does not exist.");
         }
 
-        private void PrepareSecondDay(CargoJobCollectionTestExecutionContext context, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes, out string sampleRootFolder, out string sampleFileSystemRootFolder, out List<Job> cargoJobs) {
-            InitCase456(context, out sampleRootFolder, out sampleFileSystemRootFolder, out cargoJobs, "");
-            RunFirstDay(cargoJobs, runner, subRunner, detailRunner, crypticKey, accessCodes);
+        private async Task PrepareSecondDayAsync(CargoJobCollectionTestExecutionContext context, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes, CargoString sampleRootFolder, CargoString sampleFileSystemRootFolder, List<Job> cargoJobs) {
+            await InitCase456Async(context, sampleRootFolder, sampleFileSystemRootFolder, cargoJobs, "");
+            await RunFirstDayAsync(cargoJobs, runner, subRunner, detailRunner, crypticKey, accessCodes);
         }
 
-        private void RunSecondDay(List<Job> cargoJobs, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
+        private async Task RunSecondDayAsync(List<Job> cargoJobs, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
             var currentDate = new DateTime(2010, 8, 26);
-            RunJob(cargoJobs, "ZipWamp", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
-            RunJob(cargoJobs, "UploadZip", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
+            await RunJobAsync(cargoJobs, "ZipWamp", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
+            await RunJobAsync(cargoJobs, "UploadZip", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
         }
 
         [TestMethod]
-        public void CanProcessThirdDay() {
+        public async Task CanProcessThirdDay() {
             using var context = new CargoJobCollectionTestExecutionContext();
             var runner = new JobRunner();
             var subRunner = new SubJobRunner();
@@ -192,30 +199,33 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
             var crypticKey = crypticKeyProvider.GetCrypticKey("", "");
             var accessCodes = AccessCodes();
             new Folder(context.SampleFileSystemRootFolder).SubFolder("Traveller").SubFolder("Wamp").SubFolder("download").CreateIfNecessary();
-            PrepareThirdDay(context, runner, subRunner, detailRunner, crypticKey, accessCodes, out _, out var sampleFileSystemRootFolder, out var cargoJobs);
+            var sampleRootFolder = new CargoString();
+            var sampleFileSystemRootFolder = new CargoString();
+            var cargoJobs = new List<Job>();
+            await PrepareThirdDayAsync(context, runner, subRunner, detailRunner, crypticKey, accessCodes, sampleRootFolder, sampleFileSystemRootFolder, cargoJobs);
             File.Delete(context.SampleFileSystemRootFolder + @"\Traveller\Wamp\download\webseiten100825.7zip");
             File.Delete(context.SampleFileSystemRootFolder + @"\Traveller\Wamp\download\webseiten100826.7zip");
-            InitCase456(context, out _, out sampleFileSystemRootFolder, out cargoJobs, "");
-            var webZipFile = sampleFileSystemRootFolder + @"\Traveller\Webdev\webseiten100826.7zip";
+            await InitCase456Async(context, sampleRootFolder, sampleFileSystemRootFolder, cargoJobs, "");
+            var webZipFile = sampleFileSystemRootFolder.Value + @"\Traveller\Webdev\webseiten100826.7zip";
             Assert.IsTrue(File.Exists(webZipFile), "Preceding test case failed.");
-            webZipFile = sampleFileSystemRootFolder + @"\Traveller\Webdev\webseiten100827.7zip";
-            RunThirdDay(cargoJobs, runner, subRunner, detailRunner, crypticKey, accessCodes);
+            webZipFile = sampleFileSystemRootFolder.Value + @"\Traveller\Webdev\webseiten100827.7zip";
+            await RunThirdDayAsync(cargoJobs, runner, subRunner, detailRunner, crypticKey, accessCodes);
             Assert.IsFalse(File.Exists(webZipFile), "Web zip file exists.");
         }
 
-        private void PrepareThirdDay(CargoJobCollectionTestExecutionContext context, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes, out string sampleRootFolder, out string sampleFileSystemRootFolder, out List<Job> cargoJobs) {
-            PrepareSecondDay(context, runner, subRunner, detailRunner, crypticKey, accessCodes, out sampleRootFolder, out sampleFileSystemRootFolder, out cargoJobs);
-            InitCase456(context, out sampleRootFolder, out sampleFileSystemRootFolder, out cargoJobs, @"\Traveller\Wamp\tank.php");
-            RunSecondDay(cargoJobs, runner, subRunner, detailRunner, crypticKey, accessCodes);
+        private async Task PrepareThirdDayAsync(CargoJobCollectionTestExecutionContext context, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes, CargoString sampleRootFolder, CargoString sampleFileSystemRootFolder, List<Job> cargoJobs) {
+            await PrepareSecondDayAsync(context, runner, subRunner, detailRunner, crypticKey, accessCodes, sampleRootFolder, sampleFileSystemRootFolder, cargoJobs);
+            await InitCase456Async(context, sampleRootFolder, sampleFileSystemRootFolder, cargoJobs, @"\Traveller\Wamp\tank.php");
+            await RunSecondDayAsync(cargoJobs, runner, subRunner, detailRunner, crypticKey, accessCodes);
         }
 
-        private void RunThirdDay(List<Job> cargoJobs, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
+        private async Task RunThirdDayAsync(List<Job> cargoJobs, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
             var currentDate = new DateTime(2010, 8, 27);
-            RunJob(cargoJobs, "ZipWamp", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
+            await RunJobAsync(cargoJobs, "ZipWamp", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
         }
 
         [TestMethod]
-        public void CanProcessFourthDay() {
+        public async Task CanProcessFourthDay() {
             using var context = new CargoJobCollectionTestExecutionContext();
             var runner = new JobRunner();
             var subRunner = new SubJobRunner();
@@ -223,22 +233,25 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
             var crypticKeyProvider = new FakeCrypticKeyProvider();
             var crypticKey = crypticKeyProvider.GetCrypticKey("", "");
             var accessCodes = AccessCodes();
-            PrepareFourthDay(context, runner, subRunner, detailRunner, crypticKey, accessCodes, out _, out var sampleFileSystemRootFolder, out var cargoJobs);
-            InitCase456(context, out _, out sampleFileSystemRootFolder, out cargoJobs, "");
-            new Folder(sampleFileSystemRootFolder).SubFolder("Traveller").SubFolder("Download").CreateIfNecessary();
-            var downloadedWebZipFile = sampleFileSystemRootFolder + @"\Traveller\Download\webseiten100825.7zip";
+            var sampleRootFolder = new CargoString();
+            var sampleFileSystemRootFolder = new CargoString();
+            var cargoJobs = new List<Job>();
+            await PrepareFourthDayAsync(context, runner, subRunner, detailRunner, crypticKey, accessCodes, sampleRootFolder, sampleFileSystemRootFolder, cargoJobs);
+            await InitCase456Async(context, sampleRootFolder, sampleFileSystemRootFolder, cargoJobs, "");
+            new Folder(sampleFileSystemRootFolder.Value).SubFolder("Traveller").SubFolder("Download").CreateIfNecessary();
+            var downloadedWebZipFile = sampleFileSystemRootFolder.Value + @"\Traveller\Download\webseiten100825.7zip";
             Assert.IsFalse(File.Exists(downloadedWebZipFile), "Downloaded web zip exists.");
             var currentDate = new DateTime(2010, 8, 28);
-            RunJob(cargoJobs, "ZipWamp", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
-            RunJob(cargoJobs, "UploadZip", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
-            RunJob(cargoJobs, "DownloadZip", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
+            await RunJobAsync(cargoJobs, "ZipWamp", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
+            await RunJobAsync(cargoJobs, "UploadZip", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
+            await RunJobAsync(cargoJobs, "DownloadZip", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
             Assert.IsTrue(File.Exists(downloadedWebZipFile), "Downloaded web zip does not exist.");
         }
 
-        private void PrepareFourthDay(CargoJobCollectionTestExecutionContext context, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes, out string sampleRootFolder, out string sampleFileSystemRootFolder, out List<Job> cargoJobs) {
-            PrepareThirdDay(context, runner, subRunner, detailRunner, crypticKey, accessCodes, out sampleRootFolder, out sampleFileSystemRootFolder, out cargoJobs);
-            InitCase456(context, out sampleRootFolder, out sampleFileSystemRootFolder, out cargoJobs, "");
-            RunThirdDay(cargoJobs, runner, subRunner, detailRunner, crypticKey, accessCodes);
+        private async Task PrepareFourthDayAsync(CargoJobCollectionTestExecutionContext context, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes, CargoString sampleRootFolder, CargoString sampleFileSystemRootFolder, List<Job> cargoJobs) {
+            await PrepareThirdDayAsync(context, runner, subRunner, detailRunner, crypticKey, accessCodes, sampleRootFolder, sampleFileSystemRootFolder, cargoJobs);
+            await InitCase456Async(context, sampleRootFolder, sampleFileSystemRootFolder, cargoJobs, "");
+            await RunThirdDayAsync(cargoJobs, runner, subRunner, detailRunner, crypticKey, accessCodes);
         }
 
         protected string RemoveVersionNumber(string s) {
@@ -273,7 +286,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
         internal string SampleRootFolder {
             get {
                 var errorsAndInfos = new ErrorsAndInfos();
-                var result = Container.Resolve<IFolderResolver>().Resolve(@"$(GitHub)\Cargobay\src\Samples", errorsAndInfos).FullName;
+                var result = Container.Resolve<IFolderResolver>().ResolveAsync(@"$(GitHub)\Cargobay\src\Samples", errorsAndInfos).Result.FullName;
                 Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
                 return result;
             }

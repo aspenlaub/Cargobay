@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
@@ -55,13 +56,13 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             return new DirectoryInfo(folder);
         }
 
-        public List<string> Downloadable(string url, string wildcard, IErrorsAndInfos errorsAndInfos) {
+        public async Task<List<string>> DownloadableAsync(string url, string wildcard, IErrorsAndInfos errorsAndInfos) {
             var fileNames = new List<string>();
             if (url.Substring(0, 20) != "ftp://ftp.localhost/") {
                 return fileNames;
             }
 
-            var wampFolder = vFolderResolver.Resolve(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos).FullName + "\\"
+            var wampFolder = (await vFolderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos)).FullName + "\\"
                              + url.Remove(0, 20).Replace('/', '\\');
             var dirInfo = DirInfo(wampFolder, out var error);
             if (error.Length != 0) {
@@ -123,19 +124,19 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             return true;
         }
 
-        public bool Download(string uri, string localFileFullName, bool checkOnly, Dictionary<string, Login> accessCodes, out string error, out bool couldConnect) {
+        public async Task<bool> DownloadAsync(string uri, string localFileFullName, bool checkOnly, Dictionary<string, Login> accessCodes, CargoString error, CargoBool couldConnect) {
             const int bufferSize = 2048;
             var buffer = new byte[bufferSize + 256];
 
-            error = string.Empty;
-            couldConnect = false;
+            error.Value = string.Empty;
+            couldConnect.Value = false;
             if (uri.Substring(0, 20) == "ftp://ftp.localhost/") {
-                couldConnect = true;
+                couldConnect.Value = true;
                 var errorsAndInfos = new ErrorsAndInfos();
-                var wampFile = vFolderResolver.Resolve(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos).FullName + "\\"
+                var wampFile = (await vFolderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos)).FullName + "\\"
                     + uri.Remove(0, 20).Replace('/', '\\');
                 if (errorsAndInfos.AnyErrors()) {
-                    error = errorsAndInfos.ErrorsToString();
+                    error.Value = errorsAndInfos.ErrorsToString();
                     return false;
                 }
                 if (checkOnly) {
@@ -146,24 +147,21 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
                 return true;
             }
 
-            if (!CreateWebRequest(uri, WebRequestMethods.Ftp.DownloadFile, accessCodes, out error, out var request)) {
+            if (!CreateWebRequest(uri, WebRequestMethods.Ftp.DownloadFile, accessCodes, out var errorMessage, out var request)) {
+                error.Value = errorMessage;
                 return false;
             }
 
             try {
                 var response = (FtpWebResponse)request.GetResponse();
-                couldConnect = response.IsMutuallyAuthenticated;
+                couldConnect.Value = response.IsMutuallyAuthenticated;
                 var ftpStream = response.GetResponseStream();
-                if (ftpStream == null) {
-                    error = Resources.CouldNotCreateFileStream;
-                    return false;
-                }
                 var outputStream = new FileStream(localFileFullName, FileMode.Create);
-                var readCount = ftpStream.Read(buffer, 0, bufferSize);
+                var readCount = await ftpStream.ReadAsync(buffer, 0, bufferSize);
                 if (!checkOnly) {
                     while (readCount > 0) {
                         outputStream.Write(buffer, 0, readCount);
-                        readCount = ftpStream.Read(buffer, 0, bufferSize);
+                        readCount = await ftpStream.ReadAsync(buffer, 0, bufferSize);
                     }
                 }
 
@@ -171,30 +169,31 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
                 outputStream.Close();
                 response.Close();
             } catch (WebException e) {
-                error = e.Message;
+                error.Value = e.Message;
                 return false;
             }
 
             return true;
         }
 
-        public bool Upload(string uri, string localFileFullName, Dictionary<string, Login> accessCodes, out string error) {
+        public async Task<bool> UploadAsync(string uri, string localFileFullName, Dictionary<string, Login> accessCodes, CargoString error) {
             FtpWebResponse response;
 
-            error = string.Empty;
+            error.Value = string.Empty;
             if (uri.Substring(0, 20) == "ftp://ftp.localhost/") {
                 var errorsAndInfos = new ErrorsAndInfos();
-                var wampFile = vFolderResolver.Resolve(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos).FullName + "\\"
+                var wampFile = (await vFolderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos)).FullName + "\\"
                                   + uri.Remove(0, 20).Replace('/', '\\');
                 if (errorsAndInfos.AnyErrors()) {
-                    error = errorsAndInfos.ErrorsToString();
+                    error.Value = errorsAndInfos.ErrorsToString();
                     return false;
                 }
                 File.Copy(localFileFullName, wampFile);
                 return true;
             }
 
-            if (!CreateWebRequest(uri, WebRequestMethods.Ftp.UploadFile, accessCodes, out error, out var request)) {
+            if (!CreateWebRequest(uri, WebRequestMethods.Ftp.UploadFile, accessCodes, out var errorMessage, out var request)) {
+                error.Value = errorMessage;
                 return false;
             }
 
@@ -206,14 +205,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
                 var buffer = new byte[8092];
                 int read;
                 while ((read = fileStream.Read(buffer, 0, buffer.Length)) != 0) {
-                    requestStream.Write(buffer, 0, read);
+                    await requestStream.WriteAsync(buffer, 0, read);
                 }
 
-                requestStream.Flush();
+                await requestStream.FlushAsync();
                 requestStream.Close();
                 response = (FtpWebResponse)request.GetResponse();
             } catch (Exception e) {
-                error = e.ToString();
+                error.Value = e.ToString();
                 return false;
             }
 
@@ -221,7 +220,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             response.Close();
             request.Abort();
             if (status.Substring(0, 3) == "226" && !status.Contains("Transfer aborted")) { return true; }
-            if (!CreateWebRequest(uri, WebRequestMethods.Ftp.DeleteFile, accessCodes, out error, out request)) {
+            if (!CreateWebRequest(uri, WebRequestMethods.Ftp.DeleteFile, accessCodes, out errorMessage, out request)) {
+                error.Value = errorMessage;
                 return false;
             }
 
@@ -230,22 +230,22 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             return false;
         }
 
-        public bool FileExists(string uri, Dictionary<string, Login> accessCodes, out bool couldConnect, out string error) {
-            error = "";
+        public async Task<bool> FileExistsAsync(string uri, Dictionary<string, Login> accessCodes, CargoBool couldConnect, CargoString error) {
+            error.Value = "";
             if (uri.Substring(0, 20) == "ftp://ftp.localhost/") {
                 var errorsAndInfos = new ErrorsAndInfos();
-                couldConnect = true;
-                var wampFile = vFolderResolver.Resolve(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos).FullName + "\\"
+                couldConnect.Value = true;
+                var wampFile = (await vFolderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos)).FullName + "\\"
                     + uri.Remove(0, 20).Replace('/', '\\');
                 if (!errorsAndInfos.AnyErrors()) {
                     return File.Exists(wampFile);
                 }
 
-                error = errorsAndInfos.ErrorsToString();
+                error.Value = errorsAndInfos.ErrorsToString();
                 return false;
             }
 
-            couldConnect = false;
+            couldConnect.Value = false;
             var pos = uri.LastIndexOf('/');
             if (pos < 0) {
                 return false;
@@ -260,18 +260,19 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             try {
                 var response = (FtpWebResponse)request.GetResponse();
                 var ftpStream = response.GetResponseStream();
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                 if (ftpStream == null) {
                     return false;
                 }
                 var ftpStreamReader = new StreamReader(ftpStream);
                 bool found;
                 do {
-                    found = fileName == ftpStreamReader.ReadLine();
+                    found = fileName == await ftpStreamReader.ReadLineAsync();
                 } while (!found && !ftpStreamReader.EndOfStream);
 
                 ftpStream.Close();
                 response.Close();
-                couldConnect = true;
+                couldConnect.Value = true;
                 return found;
             } catch {
                 return false;
@@ -279,13 +280,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
 
         }
 
-        public bool CanUpload(string uri, Dictionary<string, Login> accessCodes, out string error) {
-            if (FileExists(uri, accessCodes, out var couldConnect, out error)) {
+        public async Task<bool> CanUploadAsync(string uri, Dictionary<string, Login> accessCodes, CargoString error) {
+            var couldConnect = new CargoBool();
+            if (await FileExistsAsync(uri, accessCodes, couldConnect, error)) {
                 return false;
             }
-            if (couldConnect) { return true; }
+            if (couldConnect.Value) { return true; }
 
-            error = string.Format(Resources.NoAccessTo, uri);
+            error.Value = string.Format(Resources.NoAccessTo, uri);
             return false;
         }
     }

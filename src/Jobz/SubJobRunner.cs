@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
@@ -15,7 +16,7 @@ using Autofac;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
     public class SubJobRunner : ISubJobRunner {
-        private readonly CargoHelper vCargoHelper = new CargoHelper(new ContainerBuilder().UsePegh(new DummyCsArgumentPrompter()).Build().Resolve<IFolderResolver>());
+        private readonly CargoHelper vCargoHelper = new(new ContainerBuilder().UsePegh(new DummyCsArgumentPrompter()).Build().Resolve<IFolderResolver>());
 
         private void CreateCleanUpDetails(SubJob subJob, Job job, out string error) {
             var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
@@ -78,30 +79,29 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             subJob.SubJobDetails.Add(jobDetail);
         }
 
-        private void CreateUploadDetails(SubJob subJob, Job job, Dictionary<string, Login> accessCodes, out string error) {
+        private async Task CreateUploadDetailsAsync(SubJob subJob, Job job, Dictionary<string, Login> accessCodes, CargoString error) {
             var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
-            var dirInfo = CargoHelper.DirInfo(folder, out error);
-            Debug.Assert(error.Length == 0, error);
+            var dirInfo = CargoHelper.DirInfo(folder, out var errorMessage);
+            Debug.Assert(errorMessage.Length == 0, errorMessage);
             foreach (var fileInfo in dirInfo.GetFiles(subJob.Wildcard)) {
-                if (vCargoHelper.CanUpload(subJob.Url + fileInfo.Name, accessCodes, out error)) {
+                if (await vCargoHelper.CanUploadAsync(subJob.Url + fileInfo.Name, accessCodes, error)) {
                     var jobDetail = new SubJobDetail {
                         FileName = fileInfo.Name,
                         Description = string.Format(Properties.Resources.UploadingNewFile, fileInfo.Name)
                     };
                     subJob.SubJobDetails.Add(jobDetail);
-                } else if (error.Length != 0) {
+                } else if (error.Value.Length != 0) {
                     return;
                 }
             }
         }
 
-        private void CreateDownloadDetails(SubJob subJob, Job job, out string error) {
-            error = "";
+        private async Task CreateDownloadDetailsAsync(SubJob subJob, Job job, CargoString error) {
             var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
             var errorsAndInfos = new ErrorsAndInfos();
-            var fileNames = vCargoHelper.Downloadable(subJob.Url, subJob.Wildcard, errorsAndInfos);
+            var fileNames = await vCargoHelper.DownloadableAsync(subJob.Url, subJob.Wildcard, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) {
-                error = errorsAndInfos.ErrorsToString();
+                error.Value = errorsAndInfos.ErrorsToString();
                 return;
             }
 
@@ -133,10 +133,11 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             return subJob.Wildcard.Length != 0 ? subJob.Wildcard : "?";
         }
 
-        public void Preview(SubJob subJob, Job job, bool forExecutionLog, IApplicationCommandExecutionContext context, ISubJobDetailRunner runner, Dictionary<string, Login> accessCodes) {
-            CreateDetails(subJob, job, accessCodes, out var error);
-            if (error.Length != 0) {
-                context.Report(new FeedbackToApplication() { Type = FeedbackType.LogError, Message = "    " + error });
+        public async Task PreviewAsync(SubJob subJob, Job job, bool forExecutionLog, IApplicationCommandExecutionContext context, ISubJobDetailRunner runner, Dictionary<string, Login> accessCodes) {
+            var error = new CargoString();
+            await CreateDetailsAsync(subJob, job, accessCodes, error);
+            if (error.Value.Length != 0) {
+                context.Report(new FeedbackToApplication() { Type = FeedbackType.LogError, Message = "    " + error.Value });
                 return;
             }
 
@@ -171,12 +172,12 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             }
         }
 
-        private void CreateDetails(SubJob subJob, Job job, Dictionary<string, Login> accessCodes, out string error) {
-            error = string.Empty;
+        private async Task CreateDetailsAsync(SubJob subJob, Job job, Dictionary<string, Login> accessCodes, CargoString error) {
             subJob.SubJobDetails.Clear();
             switch (job.JobType) {
                 case CargoJobType.CleanUp: {
-                    CreateCleanUpDetails(subJob, job, out error);
+                    CreateCleanUpDetails(subJob, job, out var errorMessage);
+                    error.Value = errorMessage;
                 }
                 break;
                 case CargoJobType.TransferChanged: {
@@ -188,22 +189,23 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
                 }
                 break;
                 case CargoJobType.Upload: {
-                    CreateUploadDetails(subJob, job, accessCodes, out error);
+                    await CreateUploadDetailsAsync(subJob, job, accessCodes, error);
                 }
                 break;
                 case CargoJobType.Download: {
-                    CreateDownloadDetails(subJob, job, out error);
+                    await CreateDownloadDetailsAsync(subJob, job, error);
                 }
                 break;
             }
         }
 
-        public bool Run(SubJob subJob, DateTime today, Job job, IApplicationCommandExecutionContext context, ISubJobDetailRunner runner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
-            CreateDetails(subJob, job, accessCodes, out var error);
-            if (error.Length != 0) { return false; }
+        public async Task<bool> RunAsync(SubJob subJob, DateTime today, Job job, IApplicationCommandExecutionContext context, ISubJobDetailRunner runner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
+            var error = new CargoString();
+            await CreateDetailsAsync(subJob, job, accessCodes, error);
+            if (error.Value.Length != 0) { return false; }
 
             foreach (var nextSubJobDetail in subJob.SubJobDetails) {
-                if (!runner.Run(nextSubJobDetail, today, job, subJob, context, crypticKey, accessCodes)) { return false; }
+                if (!await runner.RunAsync(nextSubJobDetail, today, job, subJob, context, crypticKey, accessCodes)) { return false; }
             }
 
             return true;

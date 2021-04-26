@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Components;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Interfaces;
@@ -12,19 +13,19 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test.Components {
     [TestClass]
     public class JobFolderAdjusterTest {
         [TestMethod]
-        public void CanAdjustJobFolders() {
+        public async Task CanAdjustJobFolders() {
             var container = new ContainerBuilder().UseCargobay().Build();
             var sut = container.Resolve<IJobFolderAdjuster>();
             var job = new Job {
                 LogicalFolder = "$(CSharp)",
                 LogicalDestinationFolder = @"$(CSharp)\Cargobay",
                 SubJobs = new ObservableCollection<SubJob> {
-                    new SubJob {
+                    new() {
                         LogicalFolder = @"$(CSharp)\Cargobay\Components",
                         LogicalDestinationFolder = @"$(CSharp)\Cargobay\Interfaces"
                     },
 
-                    new SubJob {
+                    new() {
                         LogicalFolder = @"c:\temp\",
                         LogicalDestinationFolder = @"d:\temp\"
                     }
@@ -33,10 +34,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test.Components {
             Assert.AreEqual(job.FolderAdjustmentState, FolderAdjustmentState.NotAdjusted);
             Assert.AreEqual(job.SubJobs[0].FolderAdjustmentState, FolderAdjustmentState.NotAdjusted);
             var errorsAndInfos = new ErrorsAndInfos();
-            sut.AdjustJobAndSubFolders(job, errorsAndInfos);
+            await sut.AdjustJobAndSubFoldersAsync(job, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
             var resolver = container.Resolve<IFolderResolver>();
-            var cSharpFolder = resolver.Resolve("$(CSharp)", errorsAndInfos);
+            var cSharpFolder = await resolver.ResolveAsync("$(CSharp)", errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
             Assert.AreEqual(job.FolderAdjustmentState, FolderAdjustmentState.Adjusted);
             Assert.AreEqual(job.SubJobs[0].FolderAdjustmentState, FolderAdjustmentState.Adjusted);

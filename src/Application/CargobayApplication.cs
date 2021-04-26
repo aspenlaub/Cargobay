@@ -34,33 +34,33 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Application {
             Controller.AddCommand(new RefreshJobsCommand(this), true);
         }
 
-        protected void Preview(Job job, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, Dictionary<string, Login> accessCodes) {
+        protected async Task PreviewAsync(Job job, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, Dictionary<string, Login> accessCodes) {
             if (job == null) {
                 Context.Report(new FeedbackToApplication() { Type = FeedbackType.LogError, Message = Properties.Resources.NoJobSelected });
                 return;
             }
 
-            runner.Preview(job, false, Context, subRunner, detailRunner, accessCodes);
+            await runner.PreviewAsync(job, false, Context, subRunner, detailRunner, accessCodes);
         }
 
-        public void Preview(Job job, Dictionary<string, Login> accessCodes) {
-            Preview(job, new JobRunner(), new SubJobRunner(), new SubJobDetailRunner(), accessCodes);
+        public async Task PreviewAsync(Job job, Dictionary<string, Login> accessCodes) {
+            await PreviewAsync(job, new JobRunner(), new SubJobRunner(), new SubJobDetailRunner(), accessCodes);
         }
 
-        protected void Run(Job job, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
+        protected async Task RunAsync(Job job, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
             if (job == null) {
                 Context.Report(new FeedbackToApplication() { Type = FeedbackType.LogError, Message = Properties.Resources.NoJobSelected });
                 return;
             }
 
-            runner.Preview(job, true, Context, subRunner, detailRunner, accessCodes);
+            await runner.PreviewAsync(job, true, Context, subRunner, detailRunner, accessCodes);
             if (runner.IsWrongMachine(job)) { return; }
 
-            runner.Run(job, DateTime.Today, Context, subRunner, detailRunner, crypticKey, accessCodes);
+            await runner.RunAsync(job, DateTime.Today, Context, subRunner, detailRunner, crypticKey, accessCodes);
         }
 
-        public void Run(Job job, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
-            Run(job, new JobRunner(), new SubJobRunner(), new SubJobDetailRunner(), crypticKey, accessCodes);
+        public async Task RunAsync(Job job, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
+            await RunAsync(job, new JobRunner(), new SubJobRunner(), new SubJobDetailRunner(), crypticKey, accessCodes);
         }
 
         public async Task RefreshJobsAsync() {
@@ -73,9 +73,11 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Application {
                 throw new Exception(errorsAndInfos.ErrorsToString());
             }
 
-            Jobs.ForEach(job => vJobFolderAdjuster.AdjustJobAndSubFolders(job, errorsAndInfos));
-            if (errorsAndInfos.AnyErrors()) {
-                throw new Exception(errorsAndInfos.ErrorsToString());
+            foreach (var job in Jobs) {
+                await vJobFolderAdjuster.AdjustJobAndSubFoldersAsync(job, errorsAndInfos);
+                if (errorsAndInfos.AnyErrors()) {
+                    throw new Exception(errorsAndInfos.ErrorsToString());
+                }
             }
         }
     }
