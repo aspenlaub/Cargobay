@@ -6,6 +6,7 @@ using Aspenlaub.Net.GitHub.CSharp.Cargobay.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Access;
 using System.Linq;
+using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Components;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
@@ -31,11 +32,13 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay {
 
             Title = "Cargobay - " + Environment.MachineName;
             SelectedJob = null;
-            CommandsEnabledOrDisabledHandler();
             CrypticKey = null;
             PasswordProvider = new PasswordProvider();
+        }
 
-            Controller.Execute(typeof(RefreshJobsCommand));
+
+        private async void OnLoadedAsync(object sender, RoutedEventArgs e) {
+            await Controller.Execute(typeof(RefreshJobsCommand));
         }
 
         private void OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) {
@@ -55,7 +58,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay {
             await Controller.Execute(typeof(PreviewCommand));
         }
 
-        private async void ButtonExecute_Click(object sender, RoutedEventArgs e) {
+        private async void ExecuteClickAsync(object sender, RoutedEventArgs e) {
             TextBoxError.Text = string.Empty;
             TextBox.Text = string.Empty;
             Cursor = Cursors.Wait;
@@ -132,12 +135,12 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay {
             return PasswordProvider.GetAccessCodes(clue, accessCodePrompt);
         }
 
-        private async void Window_ClosedAsync(object sender, EventArgs e) {
+        private async void ClosedAsync(object sender, EventArgs e) {
             await Controller.AwaitAllAsynchronousTasks();
             Environment.Exit(1);
         }
 
-        private async void ButtonRefreshJobs_Click(object sender, RoutedEventArgs e) {
+        private async void RefreshJobsClickAsync(object sender, RoutedEventArgs e) {
             if (Controller == null) {
                 return;
             }

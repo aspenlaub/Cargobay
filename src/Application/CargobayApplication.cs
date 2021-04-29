@@ -25,7 +25,6 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Application {
             vJobFolderAdjuster = jobFolderAdjuster;
 
             Jobs = new CargoJobs();
-            RefreshJobsAsync().Wait();
 
             Context = context;
             Controller = controller;
@@ -68,7 +67,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Application {
 
             var secret = new CargoJobsSecret();
             var errorsAndInfos = new ErrorsAndInfos();
-            Jobs.AddRange(await vSecretRepository.GetAsync(secret, errorsAndInfos));
+            var secretJobs = await vSecretRepository.GetAsync(secret, errorsAndInfos);
+            Jobs.AddRange(secretJobs);
             if (errorsAndInfos.AnyErrors()) {
                 throw new Exception(errorsAndInfos.ErrorsToString());
             }
