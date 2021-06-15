@@ -225,6 +225,12 @@
   <data name="UploadingNewFile" xml:space="preserve">
     <value>Uploading new file {0}</value>
   </data>
+  <data name="UploadReduced" xml:space="preserve">
+    <value>Upload reduced</value>
+  </data>
+  <data name="UploadReducedToNewestFiveFiles" xml:space="preserve">
+    <value>Only the newest five files are being considered for upload</value>
+  </data>
   <data name="UploadSuccessful" xml:space="preserve">
     <value>Uploaded successfully</value>
   </data>

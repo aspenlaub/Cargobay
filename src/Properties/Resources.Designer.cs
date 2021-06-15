@@ -385,6 +385,24 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Upload reduced.
+        /// </summary>
+        internal static string UploadReduced {
+            get {
+                return ResourceManager.GetString("UploadReduced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only the newest five files are being considered for upload.
+        /// </summary>
+        internal static string UploadReducedToNewestFiveFiles {
+            get {
+                return ResourceManager.GetString("UploadReducedToNewestFiveFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Uploaded successfully.
         /// </summary>
         internal static string UploadSuccessful {
