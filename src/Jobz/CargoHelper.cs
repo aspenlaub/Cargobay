@@ -266,9 +266,11 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
                 }
                 var ftpStreamReader = new StreamReader(ftpStream);
                 bool found;
+                string line;
                 do {
-                    found = fileName == await ftpStreamReader.ReadLineAsync();
-                } while (!found && !ftpStreamReader.EndOfStream);
+                    line = await ftpStreamReader.ReadLineAsync();
+                    found = fileName == line;
+                } while (!found && line != null && !ftpStreamReader.EndOfStream);
 
                 ftpStream.Close();
                 response.Close();
