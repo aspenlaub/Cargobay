@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Interfaces;
@@ -67,7 +68,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Application {
 
             var secret = new CargoJobsSecret();
             var errorsAndInfos = new ErrorsAndInfos();
-            var secretJobs = await vSecretRepository.GetAsync(secret, errorsAndInfos);
+            var secretJobs = (await vSecretRepository.GetAsync(secret, errorsAndInfos)).OrderBy(j => j.SortValue());
             Jobs.AddRange(secretJobs);
             if (errorsAndInfos.AnyErrors()) {
                 throw new Exception(errorsAndInfos.ErrorsToString());

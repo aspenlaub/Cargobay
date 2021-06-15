@@ -75,5 +75,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Entities {
             AdjustedFolder = string.Empty;
             AdjustedDestinationFolder = string.Empty;
         }
+
+        public string SortValue() {
+            var s = Name;
+            s = s.Replace("Archive", "");
+            s = s.Replace("CleanUp", "");
+            s = s.Replace("Upload", "");
+            s = s.Replace("Zip", "");
+            return s;
+        }
     }
 }
