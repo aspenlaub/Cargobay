@@ -367,6 +367,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Upload.
+        /// </summary>
+        internal static string Upload {
+            get {
+                return ResourceManager.GetString("Upload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A problem occurred during upload, please transfer manually.
         /// </summary>
         internal static string UploadFailed {
@@ -381,15 +390,6 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Properties {
         internal static string UploadingNewFile {
             get {
                 return ResourceManager.GetString("UploadingNewFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Upload reduced.
-        /// </summary>
-        internal static string UploadReduced {
-            get {
-                return ResourceManager.GetString("UploadReduced", resourceCulture);
             }
         }
         

@@ -85,7 +85,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             Debug.Assert(errorMessage.Length == 0, errorMessage);
             var fileInfos = dirInfo.GetFiles(subJob.Wildcard).OrderByDescending(f => f.LastWriteTime).ToList();
             if (fileInfos.Count > 5) {
-                ExecutionLogEntry(context, Properties.Resources.UploadReduced, Properties.Resources.UploadReducedToNewestFiveFiles);
+                context.Report(new FeedbackToApplication {
+                    Type = FeedbackType.LogInformation, Message = (Properties.Resources.Upload + "        ").Substring(0, 12) + " : " + Properties.Resources.UploadReducedToNewestFiveFiles
+                });
                 fileInfos = fileInfos.Take(5).ToList();
             }
             foreach (var fileInfo in fileInfos) {

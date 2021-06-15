@@ -219,14 +219,14 @@
   <data name="Type" xml:space="preserve">
     <value>Type</value>
   </data>
+  <data name="Upload" xml:space="preserve">
+    <value>Upload</value>
+  </data>
   <data name="UploadFailed" xml:space="preserve">
     <value>A problem occurred during upload, please transfer manually</value>
   </data>
   <data name="UploadingNewFile" xml:space="preserve">
     <value>Uploading new file {0}</value>
-  </data>
-  <data name="UploadReduced" xml:space="preserve">
-    <value>Upload reduced</value>
   </data>
   <data name="UploadReducedToNewestFiveFiles" xml:space="preserve">
     <value>Only the newest five files are being considered for upload</value>

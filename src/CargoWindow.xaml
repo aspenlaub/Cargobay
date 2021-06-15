@@ -4,7 +4,7 @@
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	Title="Cargobay"
-	Height="500" Width="1000"
+	Height="500" Width="1500"
     Loaded="OnLoadedAsync" Closed="ClosedAsync">
 	<!-- Gelb e9d040, Blau 31569a, Grau 908b87, Dunkelgrau 26293a --> 
 	<Window.Resources>
@@ -38,7 +38,7 @@
 			<ColumnDefinition
 				Width="2*" />
 			<ColumnDefinition
-				Width="3*" />
+				Width="5*" />
 		</Grid.ColumnDefinitions>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="*" />
