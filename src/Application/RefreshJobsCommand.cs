@@ -9,13 +9,13 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Application {
 
         public bool MakeLogEntries => false;
         public string Name => Resources.RefreshJobsCommandName;
-        public bool CanExecute() { return true; }
+        public async Task<bool> CanExecuteAsync() { return await Task.FromResult(true); }
 
         public RefreshJobsCommand(IJobsRefreshingApplication jobsRefreshingApplication) {
             JobsRefreshingApplication = jobsRefreshingApplication;
         }
 
-        public async Task Execute(IApplicationCommandExecutionContext context) {
+        public async Task ExecuteAsync(IApplicationCommandExecutionContext context) {
             await JobsRefreshingApplication.RefreshJobsAsync();
         }
     }

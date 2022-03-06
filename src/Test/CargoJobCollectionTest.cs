@@ -27,23 +27,26 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
 
         [TestMethod]
         public async Task FoldersAreInPlace() {
-            using (new CargoJobCollectionTestExecutionContext()) {
-                var errorsAndInfos = new ErrorsAndInfos();
-                var error = CargoHelper.CheckFolder((await vContainer.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos)).FullName, true);
-                Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
-                Assert.IsTrue(error.Length != 0, "Backslash at end not mandatory");
-                error = CargoHelper.CheckFolder((await vContainer.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos)).FullName + "\\\\", true);
-                Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
-                Assert.IsTrue(error.Length != 0, "Double backslash allowed");
-                error = CargoHelper.CheckFolder((await vContainer.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)", errorsAndInfos)).FullName, true);
-                Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
-                Assert.IsTrue(error.Length != 0, "Path outside playground is allowed");
-            }
+            await using var context = new CargoJobCollectionTestExecutionContext();
+            await context.SetSampleRootFolderIfNecessaryAsync();
+
+            var errorsAndInfos = new ErrorsAndInfos();
+            var error = CargoHelper.CheckFolder((await vContainer.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos)).FullName, true);
+            Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
+            Assert.IsTrue(error.Length != 0, "Backslash at end not mandatory");
+            error = CargoHelper.CheckFolder((await vContainer.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos)).FullName + "\\\\", true);
+            Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
+            Assert.IsTrue(error.Length != 0, "Double backslash allowed");
+            error = CargoHelper.CheckFolder((await vContainer.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)", errorsAndInfos)).FullName, true);
+            Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
+            Assert.IsTrue(error.Length != 0, "Path outside playground is allowed");
         }
 
         [TestMethod]
         public async Task CanSaveSimpleJobCollection() {
-            using var context = new CargoJobCollectionTestExecutionContext();
+            await using var context = new CargoJobCollectionTestExecutionContext();
+            await context.SetSampleRootFolderIfNecessaryAsync();
+
             var jobs = new CargoJobs();
             var job = new Job {
                 Name = "This is the name",
@@ -74,7 +77,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
 
         [TestMethod]
         public async Task CanLoadAndSaveSample() {
-            using var context = new CargoJobCollectionTestExecutionContext();
+            await using var context = new CargoJobCollectionTestExecutionContext();
+            await context.SetSampleRootFolderIfNecessaryAsync();
+
             var sampleRootFolder = context.SampleRootFolder;
             new Folder(sampleRootFolder).SubFolder("Log").CreateIfNecessary();
             var sourceFolder = sampleRootFolder + @"\";
@@ -130,7 +135,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
 
         [TestMethod]
         public async Task CanProcessFirstDay() {
-            using var context = new CargoJobCollectionTestExecutionContext();
+            await using var context = new CargoJobCollectionTestExecutionContext();
+            await context.SetSampleRootFolderIfNecessaryAsync();
+
             var sampleRootFolder = new CargoString();
             var sampleFileSystemRootFolder = new CargoString();
             var cargoJobs = new List<Job>();
@@ -155,7 +162,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
 
         [TestMethod]
         public async Task CanProcessSecondDay() {
-            using var context = new CargoJobCollectionTestExecutionContext();
+            await using var context = new CargoJobCollectionTestExecutionContext();
+            await context.SetSampleRootFolderIfNecessaryAsync();
+
             var runner = new JobRunner();
             var subRunner = new SubJobRunner();
             var detailRunner = new SubJobDetailRunner();
@@ -191,7 +200,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
 
         [TestMethod]
         public async Task CanProcessThirdDay() {
-            using var context = new CargoJobCollectionTestExecutionContext();
+            await using var context = new CargoJobCollectionTestExecutionContext();
+            await context.SetSampleRootFolderIfNecessaryAsync();
+
             var runner = new JobRunner();
             var subRunner = new SubJobRunner();
             var detailRunner = new SubJobDetailRunner();
@@ -226,7 +237,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
 
         [TestMethod]
         public async Task CanProcessFourthDay() {
-            using var context = new CargoJobCollectionTestExecutionContext();
+            await using var context = new CargoJobCollectionTestExecutionContext();
+            await context.SetSampleRootFolderIfNecessaryAsync();
+
             var runner = new JobRunner();
             var subRunner = new SubJobRunner();
             var detailRunner = new SubJobDetailRunner();
@@ -280,69 +293,74 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test {
         }
     }
 
-    internal class CargoJobCollectionTestExecutionContext : IDisposable {
+    internal class CargoJobCollectionTestExecutionContext : IAsyncDisposable {
         private static readonly IContainer Container = new ContainerBuilder().UsePegh(new DummyCsArgumentPrompter()).Build();
 
-        internal string SampleRootFolder {
-            get {
-                var errorsAndInfos = new ErrorsAndInfos();
-                var result = Container.Resolve<IFolderResolver>().ResolveAsync(@"$(GitHub)\Cargobay\src\Samples", errorsAndInfos).Result.FullName;
-                Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
-                return result;
-            }
-        }
+        internal string SampleRootFolder { get; private set; }
+        internal string SampleFileSystemRootFolder { get; private set; }
 
-        internal string SampleFileSystemRootFolder => SampleRootFolder + @"\FileSystem";
+        internal async Task WriteAllTextAsync(string folder, string fileName, string contents) {
+            await SetSampleRootFolderIfNecessaryAsync();
 
-        internal CargoJobCollectionTestExecutionContext() {
-            ResetFileSystem(true);
-        }
-
-        internal void ResetFileSystem(bool initialize) {
-            var fileSystemRootFolder = SampleFileSystemRootFolder;
-            ResetFileSystem(fileSystemRootFolder + '\\');
-            if (!initialize) { return; }
-
-            const string initialContents = "This is a test file in its initial state.";
-
-            var folder = fileSystemRootFolder + @"\Traveller\Nessies\In Arbeit\";
-            WriteAllText(folder, "cargo.mxi", initialContents);
-            WriteAllText(folder, "cargo.mxt", initialContents);
-            WriteAllText(folder, "cargo.mxd", initialContents);
-            WriteAllText(folder, "cargo.001", initialContents);
-            WriteAllText(folder, "cargo.002", initialContents);
-            folder = fileSystemRootFolder + @"\Traveller\Wamp\";
-            WriteAllText(folder, "cargo.php", initialContents);
-            folder = fileSystemRootFolder + @"\Traveller\Wamp\temp\";
-            WriteAllText(folder, "cargo.css", initialContents);
-            WriteAllText(folder, "cargo.jpg", initialContents);
-            folder = fileSystemRootFolder + @"\Traveller\Wamp\mid\";
-            WriteAllText(folder, "cargo.mid", initialContents);
-        }
-
-        internal void WriteAllText(string folder, string fileName, string contents) {
             CheckFolder(folder);
-            File.WriteAllText(folder + fileName, contents, Encoding.UTF8);
+            await File.WriteAllTextAsync(folder + fileName, contents, Encoding.UTF8);
         }
 
-        internal void ResetFileSystem(string folder) {
+        private async Task ResetFileSystemAsync(string folder) {
+            await SetSampleRootFolderIfNecessaryAsync();
+
             CheckFolder(folder);
             var dirInfo = new DirectoryInfo(folder);
             foreach (var subDirInfo in dirInfo.GetDirectories()) {
-                ResetFileSystem(subDirInfo.FullName + '\\');
+                await ResetFileSystemAsync(subDirInfo.FullName + '\\');
             }
             foreach (var fileInfo in dirInfo.GetFiles("*.*")) {
                 File.Delete(fileInfo.FullName);
             }
         }
 
-        internal void CheckFolder(string folder) {
+        private void CheckFolder(string folder) {
             var error = CargoHelper.CheckFolder(folder, true);
             Assert.IsTrue(error.Length == 0, error);
         }
 
-        public void Dispose() {
-            ResetFileSystem(false);
+        public async ValueTask DisposeAsync() {
+            await ResetFileSystemAsync(false);
         }
+
+        public async Task SetSampleRootFolderIfNecessaryAsync() {
+            if (!string.IsNullOrEmpty(SampleRootFolder)) { return; }
+
+            var errorsAndInfos = new ErrorsAndInfos();
+            var result = (await Container.Resolve<IFolderResolver>().ResolveAsync(@"$(GitHub)\Cargobay\src\Samples", errorsAndInfos)).FullName;
+            Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
+            SampleRootFolder = result;
+            SampleFileSystemRootFolder = result + @"\FileSystem";
+
+            await ResetFileSystemAsync(true);
+        }
+
+        private async Task ResetFileSystemAsync(bool initialize) {
+            var fileSystemRootFolder = SampleFileSystemRootFolder;
+            await ResetFileSystemAsync(fileSystemRootFolder + '\\');
+            if (!initialize) { return; }
+
+            const string initialContents = "This is a test file in its initial state.";
+
+            var folder = fileSystemRootFolder + @"\Traveller\Nessies\In Arbeit\";
+            await WriteAllTextAsync(folder, "cargo.mxi", initialContents);
+            await WriteAllTextAsync(folder, "cargo.mxt", initialContents);
+            await WriteAllTextAsync(folder, "cargo.mxd", initialContents);
+            await WriteAllTextAsync(folder, "cargo.001", initialContents);
+            await WriteAllTextAsync(folder, "cargo.002", initialContents);
+            folder = fileSystemRootFolder + @"\Traveller\Wamp\";
+            await WriteAllTextAsync(folder, "cargo.php", initialContents);
+            folder = fileSystemRootFolder + @"\Traveller\Wamp\temp\";
+            await WriteAllTextAsync(folder, "cargo.css", initialContents);
+            await WriteAllTextAsync(folder, "cargo.jpg", initialContents);
+            folder = fileSystemRootFolder + @"\Traveller\Wamp\mid\";
+            await WriteAllTextAsync(folder, "cargo.mid", initialContents);
+        }
+
     }
 }

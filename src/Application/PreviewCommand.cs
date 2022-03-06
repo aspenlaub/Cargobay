@@ -15,7 +15,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Application {
 
         public bool MakeLogEntries => false;
         public string Name => Resources.PreviewCommandName;
-        public bool CanExecute() { return true; }
+        public async Task<bool> CanExecuteAsync() { return await Task.FromResult(true); }
 
         public PreviewCommand(IJobPreviewingApplication jobPreviewingApplication, IJobSelector jobSelector, IPasswordProvider passwordProvider) {
             JobPreviewingApplication = jobPreviewingApplication;
@@ -23,7 +23,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Application {
             PasswordProvider = passwordProvider;
         }
 
-        public Task Execute(IApplicationCommandExecutionContext context) {
+        public async Task ExecuteAsync(IApplicationCommandExecutionContext context) {
             var job = JobSelector.SelectedJob;
             var sites = new HashSet<string>();
             var accessCodes = new Dictionary<string, Login>();
@@ -39,7 +39,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Application {
                 sites.Add(site);
             }
 
-            return JobPreviewingApplication.PreviewAsync(job, accessCodes);
+            await JobPreviewingApplication.PreviewAsync(job, accessCodes);
         }
     }
 }

@@ -16,7 +16,7 @@ using Autofac;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
     public class SubJobRunner : ISubJobRunner {
-        private readonly CargoHelper vCargoHelper = new(new ContainerBuilder().UsePegh(new DummyCsArgumentPrompter()).Build().Resolve<IFolderResolver>());
+        private readonly CargoHelper CargoHelper = new(new ContainerBuilder().UsePegh(new DummyCsArgumentPrompter()).Build().Resolve<IFolderResolver>());
 
         private void CreateCleanUpDetails(SubJob subJob, Job job, out string error) {
             var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
@@ -85,13 +85,13 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             Debug.Assert(errorMessage.Length == 0, errorMessage);
             var fileInfos = dirInfo.GetFiles(subJob.Wildcard).OrderByDescending(f => f.LastWriteTime).ToList();
             if (fileInfos.Count > 5) {
-                context.Report(new FeedbackToApplication {
+                await context.ReportAsync(new FeedbackToApplication {
                     Type = FeedbackType.LogInformation, Message = (Properties.Resources.Upload + "        ").Substring(0, 12) + " : " + Properties.Resources.UploadReducedToNewestFiveFiles
                 });
                 fileInfos = fileInfos.Take(5).ToList();
             }
             foreach (var fileInfo in fileInfos) {
-                if (await vCargoHelper.CanUploadAsync(subJob.Url + fileInfo.Name, accessCodes, error)) {
+                if (await CargoHelper.CanUploadAsync(subJob.Url + fileInfo.Name, accessCodes, error)) {
                     var jobDetail = new SubJobDetail {
                         FileName = fileInfo.Name,
                         Description = string.Format(Properties.Resources.UploadingNewFile, fileInfo.Name)
@@ -106,7 +106,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
         private async Task CreateDownloadDetailsAsync(SubJob subJob, Job job, CargoString error) {
             var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
             var errorsAndInfos = new ErrorsAndInfos();
-            var fileNames = await vCargoHelper.DownloadableAsync(subJob.Url, subJob.Wildcard, errorsAndInfos);
+            var fileNames = await CargoHelper.DownloadableAsync(subJob.Url, subJob.Wildcard, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) {
                 error.Value = errorsAndInfos.ErrorsToString();
                 return;
@@ -125,8 +125,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             }
         }
 
-        private static void ExecutionLogEntry(IApplicationCommandExecutionContext context, string caption, string value) {
-            context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "    " + (caption + "        ").Substring(0, 8) + " : " + value });
+        private static async Task ExecutionLogEntryAsync(IApplicationCommandExecutionContext context, string caption, string value) {
+            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "    " + (caption + "        ").Substring(0, 8) + " : " + value });
         }
 
         public string SubJobName(SubJob subJob) {
@@ -144,7 +144,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             var error = new CargoString();
             await CreateDetailsAsync(subJob, job, context, accessCodes, error);
             if (error.Value.Length != 0) {
-                context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = "    " + error.Value });
+                await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogError, Message = "    " + error.Value });
                 return;
             }
 
@@ -152,30 +152,30 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
                 return;
             }
 
-            context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "    " });
-            context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "    Subjob" });
+            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "    " });
+            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "    Subjob" });
             var name = SubJobName(subJob);
             if (name.Length > 1) {
-                context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "    " + name });
+                await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "    " + name });
             }
             if (forExecutionLog) {
                 return;
             }
 
             if (subJob.AdjustedFolder.Length != 0) {
-                ExecutionLogEntry(context, Properties.Resources.Folder, subJob.AdjustedFolder);
+                await ExecutionLogEntryAsync(context, Properties.Resources.Folder, subJob.AdjustedFolder);
             }
             if (subJob.AdjustedDestinationFolder.Length != 0) {
-                ExecutionLogEntry(context, Properties.Resources.Destination, subJob.AdjustedDestinationFolder);
+                await ExecutionLogEntryAsync(context, Properties.Resources.Destination, subJob.AdjustedDestinationFolder);
             }
             if (subJob.Wildcard.Length != 0) {
-                ExecutionLogEntry(context, Properties.Resources.Wildcard, subJob.Wildcard);
+                await ExecutionLogEntryAsync(context, Properties.Resources.Wildcard, subJob.Wildcard);
             }
             if (subJob.Url.Length != 0) {
-                ExecutionLogEntry(context, Properties.Resources.Url, subJob.Url);
+                await ExecutionLogEntryAsync(context, Properties.Resources.Url, subJob.Url);
             }
             foreach (var jobDetail in subJob.SubJobDetails) {
-                runner.Preview(jobDetail, context);
+                await runner.PreviewAsync(jobDetail, context);
             }
         }
 

@@ -19,40 +19,40 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
     public class SubJobDetailRunner : ISubJobDetailRunner {
         private const string Indent = "    ";
 
-        private readonly CargoHelper vCargoHelper;
+        private readonly CargoHelper CargoHelper;
 
         public SubJobDetailRunner() {
-            vCargoHelper = new CargoHelper(new ContainerBuilder().UsePegh(new DummyCsArgumentPrompter()).Build().Resolve<IFolderResolver>());
+            CargoHelper = new CargoHelper(new ContainerBuilder().UsePegh(new DummyCsArgumentPrompter()).Build().Resolve<IFolderResolver>());
         }
 
-        private void ExecutionLogEntry(IApplicationCommandExecutionContext context, string caption, string value) {
-            context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + (caption + "        ").Substring(0, 8) + " : " + value });
+        private async Task ExecutionLogEntryAsync(IApplicationCommandExecutionContext context, string caption, string value) {
+            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + (caption + "        ").Substring(0, 8) + " : " + value });
         }
 
-        public void Preview(SubJobDetail subJobDetail, IApplicationCommandExecutionContext context) {
+        public async Task PreviewAsync(SubJobDetail subJobDetail, IApplicationCommandExecutionContext context) {
             if (subJobDetail.Description.Length != 0) {
-                context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + subJobDetail.Description });
+                await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + subJobDetail.Description });
 
             }
             if (subJobDetail.FileName.Length != 0 && subJobDetail.Description.IndexOf(subJobDetail.FileName, StringComparison.Ordinal) < 0) {
-                ExecutionLogEntry(context, Properties.Resources.File, subJobDetail.FileName);
+                await ExecutionLogEntryAsync(context, Properties.Resources.File, subJobDetail.FileName);
             }
         }
 
-        private bool CleanUp(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context) {
+        private async Task<bool> CleanUpAsync(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context) {
             var fullName = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\' + subJobDetail.FileName;
             Debug.Assert(File.Exists(fullName), "File not found: " + fullName);
             File.Delete(fullName);
             if (File.Exists(fullName)) {
-                context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + Properties.Resources.FileStillExists });
+                await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + Properties.Resources.FileStillExists });
                 return false;
             }
 
-            context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + Properties.Resources.FileDeleted });
+            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + Properties.Resources.FileDeleted });
             return true;
         }
 
-        private bool TransferChanged(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context) {
+        private async Task<bool> TransferChangedAsync(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context) {
             var fileName = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\' + subJobDetail.FileName;
             var destFileName = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedDestinationFolder) + '\\' + subJobDetail.FileName;
             Debug.Assert(File.Exists(fileName), "File not found: " + fileName);
@@ -60,7 +60,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
                 File.Delete(destFileName);
             }
             if (File.Exists(destFileName)) {
-                context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + Properties.Resources.DestinationFileStillExists });
+                await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + Properties.Resources.DestinationFileStillExists });
                 return false;
             }
 
@@ -69,11 +69,11 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
                 return true;
             }
 
-            context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + Properties.Resources.DestinationFileMissing });
+            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + Properties.Resources.DestinationFileMissing });
             return false;
         }
 
-        private bool Zip(DateTime today, Job job, SubJob subJob, IApplicationCommandExecutionContext context, CrypticKey crypticKey) {
+        private async Task<bool> ZipAsync(DateTime today, Job job, SubJob subJob, IApplicationCommandExecutionContext context, CrypticKey crypticKey) {
             var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
             CargoHelper.CheckFolder(folder, false);
             var destinationFolder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedDestinationFolder) + '\\';
@@ -92,13 +92,13 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
 
             var fullFileName = destinationFolder + fileName;
             if (File.Exists(fullFileName)) {
-                context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + string.Format(Properties.Resources.Deleting, fileName) });
+                await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + string.Format(Properties.Resources.Deleting, fileName) });
                 File.Delete(fullFileName);
             }
-            context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + string.Format(Properties.Resources.Creating, fileName) });
+            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + string.Format(Properties.Resources.Creating, fileName) });
 
-            using (var fileStream = File.Create(fullFileName)) {
-                using var zipStream = new ZipOutputStream(fileStream);
+            await using (var fileStream = File.Create(fullFileName)) {
+                await using var zipStream = new ZipOutputStream(fileStream);
                 zipStream.SetLevel(9);
                 zipStream.Password = crypticKey.Key;
                 var folderToCompress = new Folder(folder);
@@ -108,23 +108,23 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             }
 
             if (!File.Exists(fullFileName)) {
-                context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Properties.Resources.ZipFileMissing });
+                await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Properties.Resources.ZipFileMissing });
                 return false;
             }
 
             var dirInfo = CargoHelper.DirInfo(destinationFolder, out var error);
             Debug.Assert(error.Length == 0, error);
-            var length = File.ReadAllBytes(fullFileName).Length;
+            var length = (await File.ReadAllBytesAsync(fullFileName)).Length;
             foreach (var fileInfo in dirInfo.GetFiles("*.*zip")
                 .Where(fileInfo => fileName != fileInfo.Name)
                     .Where(fileInfo => length == File.ReadAllBytes(destinationFolder + fileInfo.Name).Length)) {
-                context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + "Deleting " + fileName + " - identical to " + fileInfo.Name });
+                await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + "Deleting " + fileName + " - identical to " + fileInfo.Name });
                 File.Delete(fullFileName);
                 File.SetLastWriteTime(destinationFolder + fileInfo.Name, DateTime.Now);
                 return true;
             }
 
-            context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + string.Format(Properties.Resources.Created, fileName) });
+            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + string.Format(Properties.Resources.Created, fileName) });
             return true;
         }
 
@@ -166,19 +166,19 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
             var error = new CargoString();
             var couldConnect = new CargoBool();
-            if (await vCargoHelper.DownloadAsync(subJob.Url + subJobDetail.FileName, folder + subJobDetail.FileName, false, accessCodes, error, couldConnect)) {
-                context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + Properties.Resources.DownloadSuccessful });
+            if (await CargoHelper.DownloadAsync(subJob.Url + subJobDetail.FileName, folder + subJobDetail.FileName, false, accessCodes, error, couldConnect)) {
+                await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + Properties.Resources.DownloadSuccessful });
                 return true;
             }
 
             if (!couldConnect.Value) {
-                context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + Properties.Resources.NoConnection });
+                await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + Properties.Resources.NoConnection });
                 return false;
             }
 
-            context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + Properties.Resources.DownloadFailed });
+            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + Properties.Resources.DownloadFailed });
             if (error.Value.Length != 0) {
-                context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = error.Value });
+                await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogError, Message = error.Value });
             }
             return false;
         }
@@ -186,29 +186,29 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
         private async Task<bool> UploadAsync(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context, Dictionary<string, Login> accessCodes) {
             var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
             var error = new CargoString();
-            if (await vCargoHelper.UploadAsync(subJob.Url + subJobDetail.FileName, folder + subJobDetail.FileName, accessCodes, error)) {
-                context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + Properties.Resources.UploadSuccessful });
+            if (await CargoHelper.UploadAsync(subJob.Url + subJobDetail.FileName, folder + subJobDetail.FileName, accessCodes, error)) {
+                await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + Properties.Resources.UploadSuccessful });
                 return true;
             }
 
-            context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + Properties.Resources.UploadFailed });
+            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + Properties.Resources.UploadFailed });
             if (error.Value.Length != 0) {
-                context.Report(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + error.Value });
+                await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + error.Value });
             }
             return false;
         }
 
         public async Task<bool> RunAsync(SubJobDetail subJobDetail, DateTime today, Job job, SubJob subJob, IApplicationCommandExecutionContext context, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
-            Preview(subJobDetail, context);
+            await PreviewAsync(subJobDetail, context);
             switch (job.JobType) {
                 case CargoJobType.CleanUp: {
-                        return CleanUp(subJobDetail, job, subJob, context);
+                        return await CleanUpAsync(subJobDetail, job, subJob, context);
                     }
                 case CargoJobType.TransferChanged: {
-                        return TransferChanged(subJobDetail, job, subJob, context);
+                        return await TransferChangedAsync(subJobDetail, job, subJob, context);
                     }
                 case CargoJobType.Zip: {
-                        return Zip(today, job, subJob, context, crypticKey);
+                        return await ZipAsync(today, job, subJob, context, crypticKey);
                     }
                 case CargoJobType.Upload: {
                         return await UploadAsync(subJobDetail, job, subJob, context, accessCodes);

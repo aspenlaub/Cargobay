@@ -17,13 +17,13 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Application {
         protected IApplicationCommandController Controller;
         protected IApplicationCommandExecutionContext Context;
 
-        private readonly ISecretRepository vSecretRepository;
-        private readonly IJobFolderAdjuster vJobFolderAdjuster;
+        private readonly ISecretRepository SecretRepository;
+        private readonly IJobFolderAdjuster JobFolderAdjuster;
 
         public CargobayApplication(IApplicationCommandController controller, IApplicationCommandExecutionContext context, IJobSelector jobSelector, ICrypticKeyProvider crypticKeyProvider,
                 IPasswordProvider passwordProvider, IJobFolderAdjuster jobFolderAdjuster, ISecretRepository secretRepository) {
-            vSecretRepository = secretRepository;
-            vJobFolderAdjuster = jobFolderAdjuster;
+            SecretRepository = secretRepository;
+            JobFolderAdjuster = jobFolderAdjuster;
 
             Jobs = new CargoJobs();
 
@@ -36,7 +36,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Application {
 
         protected async Task PreviewAsync(Job job, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, Dictionary<string, Login> accessCodes) {
             if (job == null) {
-                Context.Report(new FeedbackToApplication() { Type = FeedbackType.LogError, Message = Properties.Resources.NoJobSelected });
+                await Context.ReportAsync(new FeedbackToApplication() { Type = FeedbackType.LogError, Message = Properties.Resources.NoJobSelected });
                 return;
             }
 
@@ -49,7 +49,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Application {
 
         protected async Task RunAsync(Job job, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
             if (job == null) {
-                Context.Report(new FeedbackToApplication() { Type = FeedbackType.LogError, Message = Properties.Resources.NoJobSelected });
+                await Context.ReportAsync(new FeedbackToApplication() { Type = FeedbackType.LogError, Message = Properties.Resources.NoJobSelected });
                 return;
             }
 
@@ -68,14 +68,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Application {
 
             var secret = new CargoJobsSecret();
             var errorsAndInfos = new ErrorsAndInfos();
-            var secretJobs = (await vSecretRepository.GetAsync(secret, errorsAndInfos)).OrderBy(j => j.SortValue());
+            var secretJobs = (await SecretRepository.GetAsync(secret, errorsAndInfos)).OrderBy(j => j.SortValue());
             Jobs.AddRange(secretJobs);
             if (errorsAndInfos.AnyErrors()) {
                 throw new Exception(errorsAndInfos.ErrorsToString());
             }
 
             foreach (var job in Jobs) {
-                await vJobFolderAdjuster.AdjustJobAndSubFoldersAsync(job, errorsAndInfos);
+                await JobFolderAdjuster.AdjustJobAndSubFoldersAsync(job, errorsAndInfos);
                 if (errorsAndInfos.AnyErrors()) {
                     throw new Exception(errorsAndInfos.ErrorsToString());
                 }

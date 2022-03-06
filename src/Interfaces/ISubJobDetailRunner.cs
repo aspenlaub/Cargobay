@@ -6,7 +6,7 @@ using Aspenlaub.Net.GitHub.CSharp.Vishizhukel.Interfaces.Application;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Interfaces {
     public interface ISubJobDetailRunner {
-        void Preview(SubJobDetail subJobDetail, IApplicationCommandExecutionContext context);
+        Task PreviewAsync(SubJobDetail subJobDetail, IApplicationCommandExecutionContext context);
         Task<bool> RunAsync(SubJobDetail subJobDetail, DateTime today, Job job, SubJob subJob, IApplicationCommandExecutionContext context, CrypticKey crypticKey, Dictionary<string, Login> accessCodes);
     }
 }

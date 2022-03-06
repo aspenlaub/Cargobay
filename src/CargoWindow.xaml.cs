@@ -6,6 +6,7 @@ using Aspenlaub.Net.GitHub.CSharp.Cargobay.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Access;
 using System.Linq;
+using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Components;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
@@ -26,7 +27,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay {
         public CargoWindow() {
             InitializeComponent();
             Container = new ContainerBuilder().UseCargobay().Build();
-            Controller = new ApplicationCommandController(ApplicationFeedbackHandler);
+            Controller = new ApplicationCommandController(HandleFeedbackToApplicationAsync);
             CargobayApplication = new CargobayApplication(Controller, Controller, this, this, this, Container.Resolve<IJobFolderAdjuster>(), Container.Resolve<ISecretRepository>());
 
             Title = "Cargobay - " + Environment.MachineName;
@@ -37,7 +38,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay {
 
 
         private async void OnLoadedAsync(object sender, RoutedEventArgs e) {
-            await Controller.Execute(typeof(RefreshJobsCommand));
+            await Controller.ExecuteAsync(typeof(RefreshJobsCommand));
         }
 
         private void OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) {
@@ -54,24 +55,24 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay {
             TextBoxError.Text = string.Empty;
             TextBox.Text = string.Empty;
             Cursor = Cursors.Wait;
-            await Controller.Execute(typeof(PreviewCommand));
+            await Controller.ExecuteAsync(typeof(PreviewCommand));
         }
 
         private async void ExecuteClickAsync(object sender, RoutedEventArgs e) {
             TextBoxError.Text = string.Empty;
             TextBox.Text = string.Empty;
             Cursor = Cursors.Wait;
-            await Controller.Execute(typeof(ExecuteCommand));
+            await Controller.ExecuteAsync(typeof(ExecuteCommand));
         }
 
-        public void ApplicationFeedbackHandler(IFeedbackToApplication feedback) {
+        public async Task HandleFeedbackToApplicationAsync(IFeedbackToApplication feedback) {
             switch (feedback.Type) {
                 case FeedbackType.CommandExecutionCompleted: {
                     CommandExecutionCompletedHandler(feedback.CommandType);
                 }
                 break;
                 case FeedbackType.CommandsEnabledOrDisabled: {
-                    CommandsEnabledOrDisabledHandler();
+                    await CommandsEnabledOrDisabledHandlerAsync();
                 }
                 break;
                 case FeedbackType.LogInformation: {
@@ -103,8 +104,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay {
             }
         }
 
-        public void CommandsEnabledOrDisabledHandler() {
-            var allCommandsEnabled = Controller.Enabled(typeof(PreviewCommand)) && Controller.Enabled(typeof(ExecuteCommand));
+        public async Task CommandsEnabledOrDisabledHandlerAsync() {
+            var allCommandsEnabled = await Controller.EnabledAsync(typeof(PreviewCommand)) && await Controller.EnabledAsync(typeof(ExecuteCommand));
             ButtonPreview.IsEnabled = allCommandsEnabled;
             ButtonExecute.IsEnabled = allCommandsEnabled;
             ButtonRefreshJobs.IsEnabled = allCommandsEnabled;
@@ -134,8 +135,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay {
             return PasswordProvider.GetAccessCodes(clue, accessCodePrompt);
         }
 
-        private async void ClosedAsync(object sender, EventArgs e) {
-            await Controller.AwaitAllAsynchronousTasks();
+        private void OnClosed(object sender, EventArgs e) {
             Environment.Exit(1);
         }
 
@@ -147,7 +147,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay {
             TextBoxError.Text = string.Empty;
             TextBox.Text = string.Empty;
             Cursor = Cursors.Wait;
-            await Controller.Execute(typeof(RefreshJobsCommand));
+            await Controller.ExecuteAsync(typeof(RefreshJobsCommand));
         }
 
         private void UpdateJobTree() {

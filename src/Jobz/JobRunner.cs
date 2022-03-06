@@ -24,43 +24,43 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
             return IsPrimaryMachine(job) || IsSecondaryMachine(job);
         }
 
-        private void ExecutionLogEntry(IApplicationCommandExecutionContext context, string caption, string value) {
-            context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = (caption + "            ").Substring(0, 12) + " : " + value });
+        private async Task ExecutionLogEntryAsync(IApplicationCommandExecutionContext context, string caption, string value) {
+            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = (caption + "            ").Substring(0, 12) + " : " + value });
         }
 
         public async Task PreviewAsync(Job job, bool forExecutionLog, IApplicationCommandExecutionContext context, ISubJobRunner runner, ISubJobDetailRunner detailRunner, Dictionary<string, Login> accessCodes) {
-            context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "Job" });
+            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "Job" });
             if (job.Description.Length != 0) {
                 if (forExecutionLog) {
-                    ExecutionLogEntry(context, Properties.Resources.Executed, job.Description);
+                    await ExecutionLogEntryAsync(context, Properties.Resources.Executed, job.Description);
                 } else {
-                    context.Report(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = job.Description });
+                    await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = job.Description });
                 }
             }
             if (job.Machine.Length != 0) {
-                ExecutionLogEntry(context, Properties.Resources.Machine, job.Machine);
+                await ExecutionLogEntryAsync(context, Properties.Resources.Machine, job.Machine);
             }
             if (job.SecondaryMachine.Length != 0) {
-                ExecutionLogEntry(context, Properties.Resources.SecondaryMachine, job.SecondaryMachine);
+                await ExecutionLogEntryAsync(context, Properties.Resources.SecondaryMachine, job.SecondaryMachine);
             }
             if (IsWrongMachine(job)) {
                 return;
             }
 
             if (job.AdjustedFolder.Length != 0) {
-                ExecutionLogEntry(context, Properties.Resources.Folder, job.AdjustedFolder);
+                await ExecutionLogEntryAsync(context, Properties.Resources.Folder, job.AdjustedFolder);
             }
             if (job.AdjustedDestinationFolder.Length != 0) {
-                ExecutionLogEntry(context, Properties.Resources.Destination, job.AdjustedDestinationFolder);
+                await ExecutionLogEntryAsync(context, Properties.Resources.Destination, job.AdjustedDestinationFolder);
             }
             if (forExecutionLog) {
                 return;
             }
 
             if (job.Name.Length != 0 && job.Description.IndexOf(job.Name, StringComparison.Ordinal) < 0) {
-                ExecutionLogEntry(context, Properties.Resources.Name, job.Name);
+                await ExecutionLogEntryAsync(context, Properties.Resources.Name, job.Name);
             }
-            ExecutionLogEntry(context, Properties.Resources.Type, Enum.GetName(typeof(CargoJobType), job.JobType));
+            await ExecutionLogEntryAsync(context, Properties.Resources.Type, Enum.GetName(typeof(CargoJobType), job.JobType));
             foreach (var subJob in job.SubJobs) {
                 await runner.PreviewAsync(subJob, job, false, context, detailRunner, accessCodes);
             }
