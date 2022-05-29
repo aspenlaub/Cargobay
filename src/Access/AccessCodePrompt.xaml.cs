@@ -1,27 +1,27 @@
 using System.Windows;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Interfaces;
 
-namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Access {
-    public partial class AccessCodePrompt : IAccessCodePrompt {
-        public string Clue {
-            get => ClueLabel.Content.ToString();
-            set => ClueLabel.Content = value;
-        }
+namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Access;
 
-        public bool GoodCode { get; private set; }
+public partial class AccessCodePrompt : IAccessCodePrompt {
+    public string Clue {
+        get => ClueLabel.Content.ToString();
+        set => ClueLabel.Content = value;
+    }
 
-        public string Identification => IdentificationTextBox.Text;
-        public string Password => PasswordTextBox.Password;
+    public bool GoodCode { get; private set; }
 
-        public AccessCodePrompt() {
-            InitializeComponent();
-            GoodCode = false;
-            IdentificationTextBox.Focus();
-        }
+    public string Identification => IdentificationTextBox.Text;
+    public string Password => PasswordTextBox.Password;
 
-        private void Click(object sender, RoutedEventArgs e) {
-            GoodCode = IdentificationTextBox.Text.Length > 5 && PasswordTextBox.Password.Length > 5;
-            Close();
-        }
+    public AccessCodePrompt() {
+        InitializeComponent();
+        GoodCode = false;
+        IdentificationTextBox.Focus();
+    }
+
+    private void Click(object sender, RoutedEventArgs e) {
+        GoodCode = IdentificationTextBox.Text.Length > 5 && PasswordTextBox.Password.Length > 5;
+        Close();
     }
 }

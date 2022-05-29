@@ -4,85 +4,85 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 
-namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Entities {
-    public class Job : IGuid, ISetGuid {
+namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Entities;
 
-        [XmlAttribute("guid")]
-        public string Guid { get; set; }
+public class Job : IGuid, ISetGuid {
 
-        [XmlElement("SubJob")]
-        public ObservableCollection<SubJob> SubJobs { get; set; }
+    [XmlAttribute("guid")]
+    public string Guid { get; set; }
 
-        [XmlAttribute("name")]
-        public string Name { get; set; }
+    [XmlElement("SubJob")]
+    public ObservableCollection<SubJob> SubJobs { get; set; }
 
-        [XmlAttribute("description")]
-        public string Description { get; set; }
+    [XmlAttribute("name")]
+    public string Name { get; set; }
 
-        [XmlAttribute("type")]
-        public CargoJobType JobType { get; set; }
+    [XmlAttribute("description")]
+    public string Description { get; set; }
 
-        [XmlAttribute("folder"), DefaultValue("")]
-        public string LogicalFolder { get; set; }
+    [XmlAttribute("type")]
+    public CargoJobType JobType { get; set; }
 
-        [XmlAttribute("destinationfolder"), DefaultValue("")]
-        public string LogicalDestinationFolder { get; set; }
+    [XmlAttribute("folder"), DefaultValue("")]
+    public string LogicalFolder { get; set; }
 
-        [XmlAttribute("machine"), DefaultValue("")]
-        public string Machine { get; set; }
+    [XmlAttribute("destinationfolder"), DefaultValue("")]
+    public string LogicalDestinationFolder { get; set; }
 
-        [XmlAttribute("secondarymachine"), DefaultValue("")]
-        public string SecondaryMachine { get; set; }
+    [XmlAttribute("machine"), DefaultValue("")]
+    public string Machine { get; set; }
 
-        [XmlIgnore]
-        public FolderAdjustmentState FolderAdjustmentState { get; set; }
+    [XmlAttribute("secondarymachine"), DefaultValue("")]
+    public string SecondaryMachine { get; set; }
 
-        private string vAdjustedFolder;
-        [XmlIgnore]
-        public string AdjustedFolder {
-            get {
-                if (FolderAdjustmentState == FolderAdjustmentState.NotAdjusted) {
-                    throw new Exception("Job folder has not been adjusted");
-                }
-                return vAdjustedFolder;
+    [XmlIgnore]
+    public FolderAdjustmentState FolderAdjustmentState { get; set; }
+
+    private string PrivateAdjustedFolder;
+    [XmlIgnore]
+    public string AdjustedFolder {
+        get {
+            if (FolderAdjustmentState == FolderAdjustmentState.NotAdjusted) {
+                throw new Exception("Job folder has not been adjusted");
             }
-            set => vAdjustedFolder = value;
+            return PrivateAdjustedFolder;
         }
+        set => PrivateAdjustedFolder = value;
+    }
 
-        private string vAdjustedDestinationFolder;
-        [XmlIgnore]
-        public string AdjustedDestinationFolder {
-            get {
-                if (FolderAdjustmentState == FolderAdjustmentState.NotAdjusted) {
-                    throw new Exception("Job destination folder has not been adjusted");
-                }
-                return vAdjustedDestinationFolder;
+    private string PrivateAdjustedDestinationFolder;
+    [XmlIgnore]
+    public string AdjustedDestinationFolder {
+        get {
+            if (FolderAdjustmentState == FolderAdjustmentState.NotAdjusted) {
+                throw new Exception("Job destination folder has not been adjusted");
             }
-            set => vAdjustedDestinationFolder = value;
+            return PrivateAdjustedDestinationFolder;
         }
+        set => PrivateAdjustedDestinationFolder = value;
+    }
 
-        public Job() {
-            Guid = System.Guid.NewGuid().ToString();
-            Name = string.Empty;
-            Description = string.Empty;
-            JobType = CargoJobType.None;
-            LogicalFolder = string.Empty;
-            LogicalDestinationFolder = string.Empty;
-            SubJobs = new ObservableCollection<SubJob>();
-            Machine = string.Empty;
-            SecondaryMachine = string.Empty;
-            FolderAdjustmentState = FolderAdjustmentState.NotAdjusted;
-            AdjustedFolder = string.Empty;
-            AdjustedDestinationFolder = string.Empty;
-        }
+    public Job() {
+        Guid = System.Guid.NewGuid().ToString();
+        Name = string.Empty;
+        Description = string.Empty;
+        JobType = CargoJobType.None;
+        LogicalFolder = string.Empty;
+        LogicalDestinationFolder = string.Empty;
+        SubJobs = new ObservableCollection<SubJob>();
+        Machine = string.Empty;
+        SecondaryMachine = string.Empty;
+        FolderAdjustmentState = FolderAdjustmentState.NotAdjusted;
+        AdjustedFolder = string.Empty;
+        AdjustedDestinationFolder = string.Empty;
+    }
 
-        public string SortValue() {
-            var s = Name;
-            s = s.Replace("Archive", "");
-            s = s.Replace("CleanUp", "");
-            s = s.Replace("Upload", "");
-            s = s.Replace("Zip", "");
-            return s;
-        }
+    public string SortValue() {
+        var s = Name;
+        s = s.Replace("Archive", "");
+        s = s.Replace("CleanUp", "");
+        s = s.Replace("Upload", "");
+        s = s.Replace("Zip", "");
+        return s;
     }
 }

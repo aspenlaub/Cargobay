@@ -2,26 +2,26 @@ using System.Windows;
 using System.Windows.Controls;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Interfaces;
 
-namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Access {
-    public partial class CrypticKeyPrompt : ICrypticKeyPrompt {
-        public string Clue {
-            get => ClueLabel.Content.ToString();
-            set => ClueLabel.Content = value;
-        }
+namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Access;
 
-        public string Key => KeyTextBox.Password;
+public partial class CrypticKeyPrompt : ICrypticKeyPrompt {
+    public string Clue {
+        get => ClueLabel.Content.ToString();
+        set => ClueLabel.Content = value;
+    }
 
-        public CrypticKeyPrompt() {
-            InitializeComponent();
-            KeyTextBox.Focus();
-        }
+    public string Key => KeyTextBox.Password;
 
-        private void Click(object sender, RoutedEventArgs e) {
-            Close();
-        }
+    public CrypticKeyPrompt() {
+        InitializeComponent();
+        KeyTextBox.Focus();
+    }
 
-        private void KeySampleTextBox_TextChanged(object sender, TextChangedEventArgs e) {
-            HashTextBox.Text = new Sha1Encrypter().Encrypt(KeySampleTextBox.Text);
-        }
+    private void Click(object sender, RoutedEventArgs e) {
+        Close();
+    }
+
+    private void KeySampleTextBox_TextChanged(object sender, TextChangedEventArgs e) {
+        HashTextBox.Text = new Sha1Encrypter().Encrypt(KeySampleTextBox.Text);
     }
 }

@@ -6,75 +6,75 @@ using Aspenlaub.Net.GitHub.CSharp.Cargobay.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Vishizhukel.Application;
 using Aspenlaub.Net.GitHub.CSharp.Vishizhukel.Interfaces.Application;
 
-namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz {
-    public class JobRunner : IJobRunner {
-        protected bool IsPrimaryMachine(Job job) {
-            return Environment.MachineName.ToUpper() == job.Machine.ToUpper();
-        }
+namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz;
 
-        protected bool IsSecondaryMachine(Job job) {
-            return Environment.MachineName.ToUpper() == job.SecondaryMachine.ToUpper() || job.Machine == "";
-        }
+public class JobRunner : IJobRunner {
+    protected bool IsPrimaryMachine(Job job) {
+        return Environment.MachineName.ToUpper() == job.Machine.ToUpper();
+    }
 
-        public bool IsWrongMachine(Job job) {
-            return !(IsPrimaryMachine(job) || IsSecondaryMachine(job));
-        }
+    protected bool IsSecondaryMachine(Job job) {
+        return Environment.MachineName.ToUpper() == job.SecondaryMachine.ToUpper() || job.Machine == "";
+    }
 
-        public bool IsRightMachine(Job job) {
-            return IsPrimaryMachine(job) || IsSecondaryMachine(job);
-        }
+    public bool IsWrongMachine(Job job) {
+        return !(IsPrimaryMachine(job) || IsSecondaryMachine(job));
+    }
 
-        private async Task ExecutionLogEntryAsync(IApplicationCommandExecutionContext context, string caption, string value) {
-            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = (caption + "            ").Substring(0, 12) + " : " + value });
-        }
+    public bool IsRightMachine(Job job) {
+        return IsPrimaryMachine(job) || IsSecondaryMachine(job);
+    }
 
-        public async Task PreviewAsync(Job job, bool forExecutionLog, IApplicationCommandExecutionContext context, ISubJobRunner runner, ISubJobDetailRunner detailRunner, Dictionary<string, Login> accessCodes) {
-            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "Job" });
-            if (job.Description.Length != 0) {
-                if (forExecutionLog) {
-                    await ExecutionLogEntryAsync(context, Properties.Resources.Executed, job.Description);
-                } else {
-                    await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = job.Description });
-                }
-            }
-            if (job.Machine.Length != 0) {
-                await ExecutionLogEntryAsync(context, Properties.Resources.Machine, job.Machine);
-            }
-            if (job.SecondaryMachine.Length != 0) {
-                await ExecutionLogEntryAsync(context, Properties.Resources.SecondaryMachine, job.SecondaryMachine);
-            }
-            if (IsWrongMachine(job)) {
-                return;
-            }
+    private async Task ExecutionLogEntryAsync(IApplicationCommandExecutionContext context, string caption, string value) {
+        await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = (caption + "            ").Substring(0, 12) + " : " + value });
+    }
 
-            if (job.AdjustedFolder.Length != 0) {
-                await ExecutionLogEntryAsync(context, Properties.Resources.Folder, job.AdjustedFolder);
-            }
-            if (job.AdjustedDestinationFolder.Length != 0) {
-                await ExecutionLogEntryAsync(context, Properties.Resources.Destination, job.AdjustedDestinationFolder);
-            }
+    public async Task PreviewAsync(Job job, bool forExecutionLog, IApplicationCommandExecutionContext context, ISubJobRunner runner, ISubJobDetailRunner detailRunner, Dictionary<string, Login> accessCodes) {
+        await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "Job" });
+        if (job.Description.Length != 0) {
             if (forExecutionLog) {
-                return;
+                await ExecutionLogEntryAsync(context, Properties.Resources.Executed, job.Description);
+            } else {
+                await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = job.Description });
             }
+        }
+        if (job.Machine.Length != 0) {
+            await ExecutionLogEntryAsync(context, Properties.Resources.Machine, job.Machine);
+        }
+        if (job.SecondaryMachine.Length != 0) {
+            await ExecutionLogEntryAsync(context, Properties.Resources.SecondaryMachine, job.SecondaryMachine);
+        }
+        if (IsWrongMachine(job)) {
+            return;
+        }
 
-            if (job.Name.Length != 0 && job.Description.IndexOf(job.Name, StringComparison.Ordinal) < 0) {
-                await ExecutionLogEntryAsync(context, Properties.Resources.Name, job.Name);
-            }
-            await ExecutionLogEntryAsync(context, Properties.Resources.Type, Enum.GetName(typeof(CargoJobType), job.JobType));
-            foreach (var subJob in job.SubJobs) {
-                await runner.PreviewAsync(subJob, job, false, context, detailRunner, accessCodes);
+        if (job.AdjustedFolder.Length != 0) {
+            await ExecutionLogEntryAsync(context, Properties.Resources.Folder, job.AdjustedFolder);
+        }
+        if (job.AdjustedDestinationFolder.Length != 0) {
+            await ExecutionLogEntryAsync(context, Properties.Resources.Destination, job.AdjustedDestinationFolder);
+        }
+        if (forExecutionLog) {
+            return;
+        }
+
+        if (job.Name.Length != 0 && job.Description.IndexOf(job.Name, StringComparison.Ordinal) < 0) {
+            await ExecutionLogEntryAsync(context, Properties.Resources.Name, job.Name);
+        }
+        await ExecutionLogEntryAsync(context, Properties.Resources.Type, Enum.GetName(typeof(CargoJobType), job.JobType));
+        foreach (var subJob in job.SubJobs) {
+            await runner.PreviewAsync(subJob, job, false, context, detailRunner, accessCodes);
+        }
+    }
+
+    public async Task<bool> RunAsync(Job job, DateTime today, IApplicationCommandExecutionContext context, ISubJobRunner runner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
+        foreach (var nextSubJob in job.SubJobs) {
+            await runner.PreviewAsync(nextSubJob, job, true, context, detailRunner, accessCodes);
+            if (!await runner.RunAsync(nextSubJob, today, job, context, detailRunner, crypticKey, accessCodes)) {
+                return false;
             }
         }
 
-        public async Task<bool> RunAsync(Job job, DateTime today, IApplicationCommandExecutionContext context, ISubJobRunner runner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
-            foreach (var nextSubJob in job.SubJobs) {
-                await runner.PreviewAsync(nextSubJob, job, true, context, detailRunner, accessCodes);
-                if (!await runner.RunAsync(nextSubJob, today, job, context, detailRunner, crypticKey, accessCodes)) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
+        return true;
     }
 }
