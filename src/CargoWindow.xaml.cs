@@ -28,7 +28,7 @@ public partial class CargoWindow : IJobSelector, ICrypticKeyProvider, IPasswordP
     public CargoWindow() {
         InitializeComponent();
         Container = new ContainerBuilder().UseCargobay().Build();
-        Controller = new ApplicationCommandController(HandleFeedbackToApplicationAsync);
+        Controller = new ApplicationCommandController(Container.Resolve<ISimpleLogger>(), HandleFeedbackToApplicationAsync);
         CargobayApplication = new CargobayApplication(Controller, Controller, this, this, this, Container.Resolve<IJobFolderAdjuster>(), Container.Resolve<ISecretRepository>());
 
         Title = "Cargobay - " + Environment.MachineName;
