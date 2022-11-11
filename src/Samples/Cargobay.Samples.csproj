@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <AssemblyName>Aspenlaub.Net.GitHub.CSharp.Cargobay.Samples</AssemblyName>
     <RootNamespace>Aspenlaub.Net.GitHub.CSharp.Cargobay.Samples</RootNamespace>
     <GenerateBuildInfoConfigFile>false</GenerateBuildInfoConfigFile>
@@ -25,6 +25,6 @@
     <None Include="CargoJobs2.xml" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Vishizhukel" Version="2.0.1204.866" />
+    <PackageReference Include="Vishizhukel" Version="2.0.1206.506" />
   </ItemGroup>
 </Project>
