@@ -38,28 +38,28 @@ public class Job : IGuid, ISetGuid {
     [XmlIgnore]
     public FolderAdjustmentState FolderAdjustmentState { get; set; }
 
-    private string PrivateAdjustedFolder;
+    private string _PrivateAdjustedFolder;
     [XmlIgnore]
     public string AdjustedFolder {
         get {
             if (FolderAdjustmentState == FolderAdjustmentState.NotAdjusted) {
                 throw new Exception("Job folder has not been adjusted");
             }
-            return PrivateAdjustedFolder;
+            return _PrivateAdjustedFolder;
         }
-        set => PrivateAdjustedFolder = value;
+        set => _PrivateAdjustedFolder = value;
     }
 
-    private string PrivateAdjustedDestinationFolder;
+    private string _PrivateAdjustedDestinationFolder;
     [XmlIgnore]
     public string AdjustedDestinationFolder {
         get {
             if (FolderAdjustmentState == FolderAdjustmentState.NotAdjusted) {
                 throw new Exception("Job destination folder has not been adjusted");
             }
-            return PrivateAdjustedDestinationFolder;
+            return _PrivateAdjustedDestinationFolder;
         }
-        set => PrivateAdjustedDestinationFolder = value;
+        set => _PrivateAdjustedDestinationFolder = value;
     }
 
     public Job() {

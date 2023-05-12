@@ -4,8 +4,8 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Entities;
 
 public class CargoJobsSecret : ISecret<CargoJobs> {
-    private CargoJobs DefaultJobs;
-    public CargoJobs DefaultValue => DefaultJobs ??= new CargoJobs {
+    private CargoJobs _DefaultJobs;
+    public CargoJobs DefaultValue => _DefaultJobs ??= new CargoJobs {
         new() { Guid = System.Guid.NewGuid().ToString(), JobType = CargoJobType.CleanUp, Machine = Environment.MachineName }
     };
 

@@ -17,7 +17,7 @@ using Autofac;
 namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz;
 
 public class SubJobRunner : ISubJobRunner {
-    private readonly CargoHelper CargoHelper = new(new ContainerBuilder().UsePegh("Cargobay", new DummyCsArgumentPrompter()).Build().Resolve<IFolderResolver>());
+    private readonly CargoHelper _CargoHelper = new(new ContainerBuilder().UsePegh("Cargobay", new DummyCsArgumentPrompter()).Build().Resolve<IFolderResolver>());
 
     private void CreateCleanUpDetails(SubJob subJob, Job job, out string error) {
         var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
@@ -92,7 +92,7 @@ public class SubJobRunner : ISubJobRunner {
             fileInfos = fileInfos.Take(5).ToList();
         }
         foreach (var fileInfo in fileInfos) {
-            if (await CargoHelper.CanUploadAsync(subJob.Url + fileInfo.Name, accessCodes, error)) {
+            if (await _CargoHelper.CanUploadAsync(subJob.Url + fileInfo.Name, accessCodes, error)) {
                 var jobDetail = new SubJobDetail {
                     FileName = fileInfo.Name,
                     Description = string.Format(Properties.Resources.UploadingNewFile, fileInfo.Name)
@@ -107,7 +107,7 @@ public class SubJobRunner : ISubJobRunner {
     private async Task CreateDownloadDetailsAsync(SubJob subJob, Job job, CargoString error) {
         var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
         var errorsAndInfos = new ErrorsAndInfos();
-        var fileNames = await CargoHelper.DownloadableAsync(subJob.Url, subJob.Wildcard, errorsAndInfos);
+        var fileNames = await _CargoHelper.DownloadableAsync(subJob.Url, subJob.Wildcard, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) {
             error.Value = errorsAndInfos.ErrorsToString();
             return;

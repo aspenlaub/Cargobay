@@ -6,14 +6,14 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Components;
 
 public class JobFolderAdjuster : IJobFolderAdjuster {
-    private readonly IFolderResolver FolderResolver;
+    private readonly IFolderResolver _FolderResolver;
 
     public JobFolderAdjuster(IFolderResolver folderResolver) {
-        FolderResolver = folderResolver;
+        _FolderResolver = folderResolver;
     }
 
     public async Task AdjustJobAndSubFoldersAsync(Job job, IErrorsAndInfos errorsAndInfos) {
-        var driveToReplaceCWith = (await FolderResolver.ResolveAsync("$(GitHub)", errorsAndInfos)).FullName;
+        var driveToReplaceCWith = (await _FolderResolver.ResolveAsync("$(GitHub)", errorsAndInfos)).FullName;
         driveToReplaceCWith = driveToReplaceCWith.Substring(0, 1);
 
         job.FolderAdjustmentState = FolderAdjustmentState.Adjusting;
@@ -35,6 +35,6 @@ public class JobFolderAdjuster : IJobFolderAdjuster {
         if (folder.Substring(0, 2).ToLower() == "c:") {
             folder = driveToReplaceCWith + folder.Substring(1);
         }
-        return (await FolderResolver.ResolveAsync(folder, errorsAndInfos)).FullName;
+        return (await _FolderResolver.ResolveAsync(folder, errorsAndInfos)).FullName;
     }
 }

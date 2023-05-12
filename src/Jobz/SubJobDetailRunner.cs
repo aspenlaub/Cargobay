@@ -20,10 +20,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz;
 public class SubJobDetailRunner : ISubJobDetailRunner {
     private const string Indent = "    ";
 
-    private readonly CargoHelper CargoHelper;
+    private readonly CargoHelper _CargoHelper;
 
     public SubJobDetailRunner() {
-        CargoHelper = new CargoHelper(new ContainerBuilder().UsePegh("Cargobay", new DummyCsArgumentPrompter()).Build().Resolve<IFolderResolver>());
+        _CargoHelper = new CargoHelper(new ContainerBuilder().UsePegh("Cargobay", new DummyCsArgumentPrompter()).Build().Resolve<IFolderResolver>());
     }
 
     private async Task ExecutionLogEntryAsync(IApplicationCommandExecutionContext context, string caption, string value) {
@@ -103,7 +103,9 @@ public class SubJobDetailRunner : ISubJobDetailRunner {
             zipStream.SetLevel(9);
             zipStream.Password = crypticKey.Key;
             var folderToCompress = new Folder(folder);
-            CompressFolder(folderToCompress, zipStream, folderToCompress.FullName.Length + 1);
+            if (!await CompressFolderAsync(folderToCompress, zipStream, folderToCompress.FullName.Length + 1, context)) {
+                return false;
+            }
             zipStream.IsStreamOwner = true;
             zipStream.Close();
         }
@@ -129,18 +131,26 @@ public class SubJobDetailRunner : ISubJobDetailRunner {
         return true;
     }
 
-    private void CompressFolder(IFolder folderToCompress, ZipOutputStream zipStream, int folderOffset) {
-        if (folderToCompress.FullName.EndsWith(@"\packages")) { return; }
-        if (folderToCompress.FullName.EndsWith(@"\.git")) { return; }
-        if (folderToCompress.FullName.EndsWith(@"\.vs")) { return; }
-        if (folderToCompress.FullName.EndsWith(@"\tools")) { return; }
-        if (folderToCompress.FullName.EndsWith(@"\artifacts")) { return; }
-        if (folderToCompress.FullName.EndsWith(@"\obj")) { return; }
-        if (folderToCompress.FullName.EndsWith(@"\bin")) { return; }
-        if (folderToCompress.FullName.EndsWith(@"\temp")) { return; }
-        if (folderToCompress.FullName.EndsWith(@"\TestResults")) { return; }
+    private async Task<bool> CompressFolderAsync(IFolder folderToCompress, ZipOutputStream zipStream, int folderOffset,
+                                IApplicationCommandExecutionContext context) {
+        if (folderToCompress.FullName.EndsWith(@"\packages")) { return true; }
+        if (folderToCompress.FullName.EndsWith(@"\.git")) { return true; }
+        if (folderToCompress.FullName.EndsWith(@"\.vs")) { return true; }
+        if (folderToCompress.FullName.EndsWith(@"\tools")) { return true; }
+        if (folderToCompress.FullName.EndsWith(@"\artifacts")) { return true; }
+        if (folderToCompress.FullName.EndsWith(@"\obj")) { return true; }
+        if (folderToCompress.FullName.EndsWith(@"\bin")) { return true; }
+        if (folderToCompress.FullName.EndsWith(@"\temp")) { return true; }
+        if (folderToCompress.FullName.EndsWith(@"\TestResults")) { return true; }
 
-        var files = Directory.GetFiles(folderToCompress.FullName, "*", SearchOption.TopDirectoryOnly);
+        string[] files;
+        try {
+            files = Directory.GetFiles(folderToCompress.FullName, "*", SearchOption.TopDirectoryOnly);
+        } catch (Exception e) {
+            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogError, Message = Indent + e.Message });
+            return false;
+
+        }
         foreach (var fileName in files) {
             if (fileName.Contains("nuget.exe")) { continue; }
 
@@ -151,7 +161,7 @@ public class SubJobDetailRunner : ISubJobDetailRunner {
             zipStream.PutNextEntry(newEntry);
 
             var buffer = new byte[4096];
-            using (var fsInput = File.OpenRead(fileName)) {
+            await using (var fsInput = File.OpenRead(fileName)) {
                 StreamUtils.Copy(fsInput, zipStream, buffer);
             }
             zipStream.CloseEntry();
@@ -159,15 +169,19 @@ public class SubJobDetailRunner : ISubJobDetailRunner {
 
         var folders = Directory.GetDirectories(folderToCompress.FullName, "*", SearchOption.TopDirectoryOnly);
         foreach (var folder in folders) {
-            CompressFolder(new Folder(folder), zipStream, folderOffset);
+            if (!await CompressFolderAsync(new Folder(folder), zipStream, folderOffset, context)) {
+                return false;
+            }
         }
+
+        return true;
     }
 
     private async Task<bool> DownloadAsync(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context, Dictionary<string, Login> accessCodes) {
         var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
         var error = new CargoString();
         var couldConnect = new CargoBool();
-        if (await CargoHelper.DownloadAsync(subJob.Url + subJobDetail.FileName, folder + subJobDetail.FileName, false, accessCodes, error, couldConnect)) {
+        if (await _CargoHelper.DownloadAsync(subJob.Url + subJobDetail.FileName, folder + subJobDetail.FileName, false, accessCodes, error, couldConnect)) {
             await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + Properties.Resources.DownloadSuccessful });
             return true;
         }
@@ -187,7 +201,7 @@ public class SubJobDetailRunner : ISubJobDetailRunner {
     private async Task<bool> UploadAsync(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context, Dictionary<string, Login> accessCodes) {
         var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
         var error = new CargoString();
-        if (await CargoHelper.UploadAsync(subJob.Url + subJobDetail.FileName, folder + subJobDetail.FileName, accessCodes, error)) {
+        if (await _CargoHelper.UploadAsync(subJob.Url + subJobDetail.FileName, folder + subJobDetail.FileName, accessCodes, error)) {
             await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + Properties.Resources.UploadSuccessful });
             return true;
         }

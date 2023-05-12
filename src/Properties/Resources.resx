@@ -123,6 +123,9 @@
   <data name="CouldNotCreateFileStream" xml:space="preserve">
     <value>Could not create file stream</value>
   </data>
+  <data name="CouldNotCreateFtpStream" xml:space="preserve">
+    <value>Could not create FTP stream</value>
+  </data>
   <data name="Created" xml:space="preserve">
     <value>{0} has been created</value>
   </data>

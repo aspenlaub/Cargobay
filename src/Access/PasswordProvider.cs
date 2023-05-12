@@ -12,7 +12,7 @@ public class PasswordProvider : IPasswordProvider {
     }
 
     public Login AddAccessCodes(string clue, string identification, string password) {
-        if (SecurityCodes.ContainsKey(clue)) { return SecurityCodes[clue]; }
+        if (SecurityCodes.TryGetValue(clue, out var codes)) { return codes; }
 
         var login = new Login() { Identification = identification, Password = password };
         SecurityCodes.Add(clue, login);
@@ -25,7 +25,7 @@ public class PasswordProvider : IPasswordProvider {
 
     public Login GetAccessCodes(string clue, IAccessCodePrompt accessCodePrompt) {
         var silent = accessCodePrompt == null;
-        if (SecurityCodes.ContainsKey(clue)) { return SecurityCodes[clue]; }
+        if (SecurityCodes.TryGetValue(clue, out var codes)) { return codes; }
         if (silent) { return null; }
 
         accessCodePrompt.Clue = clue;

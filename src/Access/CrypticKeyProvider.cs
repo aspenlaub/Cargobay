@@ -17,7 +17,7 @@ public class CrypticKeyProvider : ICrypticKeyProvider {
 
     public CrypticKey GetCrypticKey(string clue, string sha1, ICrypticKeyPrompt crypticKeyPrompt) {
         var silent = crypticKeyPrompt == null;
-        if (CrypticKeys.ContainsKey(clue)) { return CrypticKeys[clue]; }
+        if (CrypticKeys.TryGetValue(clue, out var key)) { return key; }
         if (silent) { return null; }
 
         crypticKeyPrompt.Clue = clue;

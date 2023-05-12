@@ -18,13 +18,13 @@ public class CargobayApplication : IJobPreviewingApplication, IJobRunningApplica
     protected IApplicationCommandController Controller;
     protected IApplicationCommandExecutionContext Context;
 
-    private readonly ISecretRepository SecretRepository;
-    private readonly IJobFolderAdjuster JobFolderAdjuster;
+    private readonly ISecretRepository _SecretRepository;
+    private readonly IJobFolderAdjuster _JobFolderAdjuster;
 
     public CargobayApplication(IApplicationCommandController controller, IApplicationCommandExecutionContext context, IJobSelector jobSelector, ICrypticKeyProvider crypticKeyProvider,
         IPasswordProvider passwordProvider, IJobFolderAdjuster jobFolderAdjuster, ISecretRepository secretRepository) {
-        SecretRepository = secretRepository;
-        JobFolderAdjuster = jobFolderAdjuster;
+        _SecretRepository = secretRepository;
+        _JobFolderAdjuster = jobFolderAdjuster;
 
         Jobs = new CargoJobs();
 
@@ -69,14 +69,14 @@ public class CargobayApplication : IJobPreviewingApplication, IJobRunningApplica
 
         var secret = new CargoJobsSecret();
         var errorsAndInfos = new ErrorsAndInfos();
-        var secretJobs = (await SecretRepository.GetAsync(secret, errorsAndInfos)).OrderBy(j => j.SortValue());
+        var secretJobs = (await _SecretRepository.GetAsync(secret, errorsAndInfos)).OrderBy(j => j.SortValue());
         Jobs.AddRange(secretJobs);
         if (errorsAndInfos.AnyErrors()) {
             throw new Exception(errorsAndInfos.ErrorsToString());
         }
 
         foreach (var job in Jobs) {
-            await JobFolderAdjuster.AdjustJobAndSubFoldersAsync(job, errorsAndInfos);
+            await _JobFolderAdjuster.AdjustJobAndSubFoldersAsync(job, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) {
                 throw new Exception(errorsAndInfos.ErrorsToString());
             }

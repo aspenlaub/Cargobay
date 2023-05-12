@@ -16,10 +16,10 @@ public class CargoHelper {
     public const string Sha1 = "c0363ff90d9e6e9cd905eb9c9cf84b20fbe9b636";
     public const string Clue = "Cargobay encryption";
 
-    private readonly IFolderResolver FolderResolver;
+    private readonly IFolderResolver _FolderResolver;
 
     public CargoHelper(IFolderResolver folderResolver) {
-        FolderResolver = folderResolver;
+        _FolderResolver = folderResolver;
     }
 
     public static string CheckFolder(string folder, bool test) {
@@ -63,7 +63,7 @@ public class CargoHelper {
             return fileNames;
         }
 
-        var wampFolder = (await FolderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos)).FullName + "\\"
+        var wampFolder = (await _FolderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos)).FullName + "\\"
             + url.Remove(0, 20).Replace('/', '\\');
         var dirInfo = DirInfo(wampFolder, out var error);
         if (error.Length != 0) {
@@ -134,7 +134,7 @@ public class CargoHelper {
         if (uri.Substring(0, 20) == "ftp://ftp.localhost/") {
             couldConnect.Value = true;
             var errorsAndInfos = new ErrorsAndInfos();
-            var wampFile = (await FolderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos)).FullName + "\\"
+            var wampFile = (await _FolderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos)).FullName + "\\"
                 + uri.Remove(0, 20).Replace('/', '\\');
             if (errorsAndInfos.AnyErrors()) {
                 error.Value = errorsAndInfos.ErrorsToString();
@@ -157,6 +157,10 @@ public class CargoHelper {
             var response = (FtpWebResponse)request.GetResponse();
             couldConnect.Value = response.IsMutuallyAuthenticated;
             var ftpStream = response.GetResponseStream();
+            if (ftpStream == null) {
+                error.Value = Properties.Resources.CouldNotCreateFtpStream;
+                return false;
+            }
             var outputStream = new FileStream(localFileFullName, FileMode.Create);
             var readCount = await ftpStream.ReadAsync(buffer, 0, bufferSize);
             if (!checkOnly) {
@@ -183,7 +187,7 @@ public class CargoHelper {
         error.Value = string.Empty;
         if (uri.Substring(0, 20) == "ftp://ftp.localhost/") {
             var errorsAndInfos = new ErrorsAndInfos();
-            var wampFile = (await FolderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos)).FullName + "\\"
+            var wampFile = (await _FolderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos)).FullName + "\\"
                 + uri.Remove(0, 20).Replace('/', '\\');
             if (errorsAndInfos.AnyErrors()) {
                 error.Value = errorsAndInfos.ErrorsToString();
@@ -236,7 +240,7 @@ public class CargoHelper {
         if (uri.Substring(0, 20) == "ftp://ftp.localhost/") {
             var errorsAndInfos = new ErrorsAndInfos();
             couldConnect.Value = true;
-            var wampFile = (await FolderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos)).FullName + "\\"
+            var wampFile = (await _FolderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos)).FullName + "\\"
                 + uri.Remove(0, 20).Replace('/', '\\');
             if (!errorsAndInfos.AnyErrors()) {
                 return File.Exists(wampFile);

@@ -20,10 +20,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test;
 
 [TestClass]
 public class CargoJobCollectionTest {
-    private readonly IContainer Container;
+    private readonly IContainer _Container;
 
     public CargoJobCollectionTest() {
-        Container = new ContainerBuilder().UseCargobay().Build();
+        _Container = new ContainerBuilder().UseCargobay().Build();
     }
 
     [TestMethod]
@@ -32,13 +32,13 @@ public class CargoJobCollectionTest {
         await context.SetSampleRootFolderIfNecessaryAsync();
 
         var errorsAndInfos = new ErrorsAndInfos();
-        var error = CargoHelper.CheckFolder((await Container.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos)).FullName, true);
+        var error = CargoHelper.CheckFolder((await _Container.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos)).FullName, true);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
         Assert.IsTrue(error.Length != 0, "Backslash at end not mandatory");
-        error = CargoHelper.CheckFolder((await Container.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos)).FullName + "\\\\", true);
+        error = CargoHelper.CheckFolder((await _Container.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos)).FullName + "\\\\", true);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
         Assert.IsTrue(error.Length != 0, "Double backslash allowed");
-        error = CargoHelper.CheckFolder((await Container.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)", errorsAndInfos)).FullName, true);
+        error = CargoHelper.CheckFolder((await _Container.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)", errorsAndInfos)).FullName, true);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
         Assert.IsTrue(error.Length != 0, "Path outside playground is allowed");
     }
@@ -60,7 +60,7 @@ public class CargoJobCollectionTest {
         job.SubJobs.Add(subJob);
         job.SubJobs.Add(subJob);
         var errorsAndInfos = new ErrorsAndInfos();
-        var adjuster = Container.Resolve<IJobFolderAdjuster>();
+        var adjuster = _Container.Resolve<IJobFolderAdjuster>();
         await adjuster.AdjustJobAndSubFoldersAsync(job, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
         jobs.Add(job);
@@ -68,9 +68,9 @@ public class CargoJobCollectionTest {
         var destFolder = context.SampleRootFolder + @"\Log\";
         const string destFile = "SaveSimple.xml";
         File.Delete(destFolder + destFile);
-        Assert.IsTrue(jobs.Save(Container.Resolve<IXmlSerializer>(), destFolder + destFile));
+        Assert.IsTrue(jobs.Save(_Container.Resolve<IXmlSerializer>(), destFolder + destFile));
         errorsAndInfos = new ErrorsAndInfos();
-        var jobsRev = await JobsExtensions.LoadAsync(Container.Resolve<IXmlDeserializer>(), Container.Resolve<IJobFolderAdjuster>(), destFolder, destFile, errorsAndInfos);
+        var jobsRev = await JobsExtensions.LoadAsync(_Container.Resolve<IXmlDeserializer>(), _Container.Resolve<IJobFolderAdjuster>(), destFolder, destFile, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
         Assert.IsTrue(jobsRev.Count == 2);
         File.Delete(destFolder + destFile);
@@ -88,12 +88,12 @@ public class CargoJobCollectionTest {
         var destFile = sampleRootFolder + @"\Log\CargoJobs1.xml";
         File.Delete(destFile);
         var errorsAndInfos = new ErrorsAndInfos();
-        var cargoJobs = await JobsExtensions.LoadAsync(Container.Resolve<IXmlDeserializer>(), Container.Resolve<IJobFolderAdjuster>(), sourceFolder, sourceFile, errorsAndInfos);
+        var cargoJobs = await JobsExtensions.LoadAsync(_Container.Resolve<IXmlDeserializer>(), _Container.Resolve<IJobFolderAdjuster>(), sourceFolder, sourceFile, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
         Assert.IsTrue(cargoJobs.Count == 4, "Four jobs expected, read " + cargoJobs.Count);
         Assert.IsTrue(cargoJobs[0].SubJobs.Count > 20);
         Assert.IsTrue(cargoJobs[0].SubJobs[0].LogicalFolder.Length > 5);
-        cargoJobs.Save(Container.Resolve<IXmlSerializer>(), destFile);
+        cargoJobs.Save(_Container.Resolve<IXmlSerializer>(), destFile);
         var sourceContents = RemoveVersionNumber(await File.ReadAllTextAsync(sourceFolder + sourceFile, Encoding.UTF8));
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
         const string search = "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"";
@@ -116,7 +116,7 @@ public class CargoJobCollectionTest {
         var sourceFolder = sampleRootFolder.Value + @"\";
         const string sourceFile = "CargoJobs2.xml";
         var errorsAndInfos = new ErrorsAndInfos();
-        var deserializedJobs = await JobsExtensions.LoadAsync(Container.Resolve<IXmlDeserializer>(), Container.Resolve<IJobFolderAdjuster>(), sourceFolder, sourceFile, errorsAndInfos);
+        var deserializedJobs = await JobsExtensions.LoadAsync(_Container.Resolve<IXmlDeserializer>(), _Container.Resolve<IJobFolderAdjuster>(), sourceFolder, sourceFile, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
         cargoJobs.Clear();
         cargoJobs.AddRange(deserializedJobs);
@@ -282,7 +282,7 @@ public class CargoJobCollectionTest {
 
     [TestMethod]
     public async Task CanGetSecretJobs() {
-        var secretRepository = Container.Resolve<ISecretRepository>();
+        var secretRepository = _Container.Resolve<ISecretRepository>();
         var secret = new CargoJobsSecret();
         var errorsAndInfos = new ErrorsAndInfos();
         var jobs = await secretRepository.GetAsync(secret, errorsAndInfos);
