@@ -149,7 +149,8 @@ public class CargoJobCollectionTest {
         var crypticKeyProvider = new FakeCrypticKeyProvider();
         var crypticKey = crypticKeyProvider.GetCrypticKey("", "");
         var accessCodes = AccessCodes();
-        await RunFirstDayAsync(cargoJobs, new JobRunner(), new SubJobRunner(), new SubJobDetailRunner(), crypticKey, accessCodes);
+        await RunFirstDayAsync(cargoJobs, new JobRunner(), new SubJobRunner(), new SubJobDetailRunner(_Container.Resolve<ISecretRepository>()),
+            crypticKey, accessCodes);
         Assert.IsTrue(File.Exists(webZipFile), "Web zip file does not exist.");
     }
 
@@ -168,7 +169,7 @@ public class CargoJobCollectionTest {
 
         var runner = new JobRunner();
         var subRunner = new SubJobRunner();
-        var detailRunner = new SubJobDetailRunner();
+        var detailRunner = new SubJobDetailRunner(_Container.Resolve<ISecretRepository>());
         var crypticKeyProvider = new FakeCrypticKeyProvider();
         var crypticKey = crypticKeyProvider.GetCrypticKey("", "");
         var accessCodes = AccessCodes();
@@ -206,7 +207,7 @@ public class CargoJobCollectionTest {
 
         var runner = new JobRunner();
         var subRunner = new SubJobRunner();
-        var detailRunner = new SubJobDetailRunner();
+        var detailRunner = new SubJobDetailRunner(_Container.Resolve<ISecretRepository>());
         var crypticKeyProvider = new FakeCrypticKeyProvider();
         var crypticKey = crypticKeyProvider.GetCrypticKey("", "");
         var accessCodes = AccessCodes();
@@ -243,7 +244,7 @@ public class CargoJobCollectionTest {
 
         var runner = new JobRunner();
         var subRunner = new SubJobRunner();
-        var detailRunner = new SubJobDetailRunner();
+        var detailRunner = new SubJobDetailRunner(_Container.Resolve<ISecretRepository>());
         var crypticKeyProvider = new FakeCrypticKeyProvider();
         var crypticKey = crypticKeyProvider.GetCrypticKey("", "");
         var accessCodes = AccessCodes();

@@ -45,7 +45,7 @@ public class CargobayApplication : IJobPreviewingApplication, IJobRunningApplica
     }
 
     public async Task PreviewAsync(Job job, Dictionary<string, Login> accessCodes) {
-        await PreviewAsync(job, new JobRunner(), new SubJobRunner(), new SubJobDetailRunner(), accessCodes);
+        await PreviewAsync(job, new JobRunner(), new SubJobRunner(), new SubJobDetailRunner(_SecretRepository), accessCodes);
     }
 
     protected async Task RunAsync(Job job, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
@@ -61,7 +61,7 @@ public class CargobayApplication : IJobPreviewingApplication, IJobRunningApplica
     }
 
     public async Task RunAsync(Job job, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
-        await RunAsync(job, new JobRunner(), new SubJobRunner(), new SubJobDetailRunner(), crypticKey, accessCodes);
+        await RunAsync(job, new JobRunner(), new SubJobRunner(), new SubJobDetailRunner(_SecretRepository), crypticKey, accessCodes);
     }
 
     public async Task RefreshJobsAsync() {

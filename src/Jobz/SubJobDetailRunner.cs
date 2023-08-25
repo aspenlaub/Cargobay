@@ -21,9 +21,11 @@ public class SubJobDetailRunner : ISubJobDetailRunner {
     private const string Indent = "    ";
 
     private readonly CargoHelper _CargoHelper;
+    private readonly ISecretRepository _SecretRepository;
 
-    public SubJobDetailRunner() {
+    public SubJobDetailRunner(ISecretRepository secretRepository) {
         _CargoHelper = new CargoHelper(new ContainerBuilder().UsePegh("Cargobay", new DummyCsArgumentPrompter()).Build().Resolve<IFolderResolver>());
+        _SecretRepository = secretRepository;
     }
 
     private async Task ExecutionLogEntryAsync(IApplicationCommandExecutionContext context, string caption, string value) {
@@ -74,7 +76,8 @@ public class SubJobDetailRunner : ISubJobDetailRunner {
         return false;
     }
 
-    private async Task<bool> ZipAsync(DateTime today, Job job, SubJob subJob, IApplicationCommandExecutionContext context, CrypticKey crypticKey) {
+    private async Task<bool> ZipAsync(DateTime today, Job job, SubJob subJob, IApplicationCommandExecutionContext context,
+            CrypticKey crypticKey) {
         var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
         CargoHelper.CheckFolder(folder, false);
         var destinationFolder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedDestinationFolder) + '\\';
@@ -91,6 +94,13 @@ public class SubJobDetailRunner : ISubJobDetailRunner {
             return false;
         }
 
+        var unwantedFoldersSecret = new UnwantedSubFoldersSecret();
+        var errorsAndInfos = new ErrorsAndInfos();
+        var unwantedFolders = (await _SecretRepository.GetAsync(unwantedFoldersSecret, errorsAndInfos)).Cast<IUnwantedSubFolder>().ToList();
+        if (errorsAndInfos.AnyErrors()) {
+            return false;
+        }
+
         var fullFileName = destinationFolder + fileName;
         if (File.Exists(fullFileName)) {
             await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = Indent + string.Format(Properties.Resources.Deleting, fileName) });
@@ -103,7 +113,7 @@ public class SubJobDetailRunner : ISubJobDetailRunner {
             zipStream.SetLevel(9);
             zipStream.Password = crypticKey.Key;
             var folderToCompress = new Folder(folder);
-            if (!await CompressFolderAsync(folderToCompress, zipStream, folderToCompress.FullName.Length + 1, context)) {
+            if (!await CompressFolderAsync(folderToCompress, zipStream, folderToCompress.FullName.Length + 1, context, unwantedFolders)) {
                 return false;
             }
             zipStream.IsStreamOwner = true;
@@ -132,7 +142,7 @@ public class SubJobDetailRunner : ISubJobDetailRunner {
     }
 
     private async Task<bool> CompressFolderAsync(IFolder folderToCompress, ZipOutputStream zipStream, int folderOffset,
-                                IApplicationCommandExecutionContext context) {
+                IApplicationCommandExecutionContext context, IList<IUnwantedSubFolder> unwantedSubFolders) {
         if (folderToCompress.FullName.EndsWith(@"\packages")) { return true; }
         if (folderToCompress.FullName.EndsWith(@"\.git")) { return true; }
         if (folderToCompress.FullName.EndsWith(@"\.vs")) { return true; }
@@ -142,7 +152,7 @@ public class SubJobDetailRunner : ISubJobDetailRunner {
         if (folderToCompress.FullName.EndsWith(@"\bin")) { return true; }
         if (folderToCompress.FullName.EndsWith(@"\temp")) { return true; }
         if (folderToCompress.FullName.EndsWith(@"\TestResults")) { return true; }
-        if (folderToCompress.FullName.Contains(@"Eigene")) { return true; }
+        if (unwantedSubFolders.Any(f => folderToCompress.FullName.Contains(f.SubFolder, StringComparison.CurrentCultureIgnoreCase))) { return true; }
 
         string[] files;
         try {
@@ -170,7 +180,7 @@ public class SubJobDetailRunner : ISubJobDetailRunner {
 
         var folders = Directory.GetDirectories(folderToCompress.FullName, "*", SearchOption.TopDirectoryOnly);
         foreach (var folder in folders) {
-            if (!await CompressFolderAsync(new Folder(folder), zipStream, folderOffset, context)) {
+            if (!await CompressFolderAsync(new Folder(folder), zipStream, folderOffset, context, unwantedSubFolders)) {
                 return false;
             }
         }
