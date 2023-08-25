@@ -142,6 +142,7 @@ public class SubJobDetailRunner : ISubJobDetailRunner {
         if (folderToCompress.FullName.EndsWith(@"\bin")) { return true; }
         if (folderToCompress.FullName.EndsWith(@"\temp")) { return true; }
         if (folderToCompress.FullName.EndsWith(@"\TestResults")) { return true; }
+        if (folderToCompress.FullName.Contains(@"Eigene")) { return true; }
 
         string[] files;
         try {
