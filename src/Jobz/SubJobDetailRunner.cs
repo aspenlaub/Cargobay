@@ -79,9 +79,9 @@ public class SubJobDetailRunner : ISubJobDetailRunner {
     private async Task<bool> ZipAsync(DateTime today, Job job, SubJob subJob, IApplicationCommandExecutionContext context,
             CrypticKey crypticKey) {
         var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
-        CargoHelper.CheckFolder(folder, false);
+        CargoHelper.CheckFolder(folder, false, true);
         var destinationFolder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedDestinationFolder) + '\\';
-        CargoHelper.CheckFolder(destinationFolder, false);
+        CargoHelper.CheckFolder(destinationFolder, false, true);
         var fileName = subJob.Wildcard;
         const string ending = ".7zip";
         fileName = fileName.Replace(".*zip", ending);
@@ -126,7 +126,7 @@ public class SubJobDetailRunner : ISubJobDetailRunner {
         }
 
         var dirInfo = CargoHelper.DirInfo(destinationFolder, out var error);
-        Debug.Assert(error.Length == 0, error);
+        Debug.Assert(string.IsNullOrEmpty(error), error);
         var length = (await File.ReadAllBytesAsync(fullFileName)).Length;
         foreach (var fileInfo in dirInfo.GetFiles("*.*zip")
                      .Where(fileInfo => fileName != fileInfo.Name)

@@ -32,15 +32,15 @@ public class CargoJobCollectionTest {
         await context.SetSampleRootFolderIfNecessaryAsync();
 
         var errorsAndInfos = new ErrorsAndInfos();
-        var error = CargoHelper.CheckFolder((await _Container.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos)).FullName, true);
+        var error = CargoHelper.CheckFolder((await _Container.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos)).FullName, true, true);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
-        Assert.IsTrue(error.Length != 0, "Backslash at end not mandatory");
-        error = CargoHelper.CheckFolder((await _Container.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos)).FullName + "\\\\", true);
+        Assert.IsFalse(string.IsNullOrEmpty(error), "Backslash at end not mandatory");
+        error = CargoHelper.CheckFolder((await _Container.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)\Cargo.Samples", errorsAndInfos)).FullName + "\\\\", true, true);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
-        Assert.IsTrue(error.Length != 0, "Double backslash allowed");
-        error = CargoHelper.CheckFolder((await _Container.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)", errorsAndInfos)).FullName, true);
+        Assert.IsFalse(string.IsNullOrEmpty(error), "Double backslash allowed");
+        error = CargoHelper.CheckFolder((await _Container.Resolve<IFolderResolver>().ResolveAsync(@"$(MainUserFolder)", errorsAndInfos)).FullName, true, true);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
-        Assert.IsTrue(error.Length != 0, "Path outside playground is allowed");
+        Assert.IsFalse(string.IsNullOrEmpty(error), "Path outside playground is allowed");
     }
 
     [TestMethod]
@@ -322,8 +322,8 @@ internal class CargoJobCollectionTestExecutionContext : IAsyncDisposable {
     }
 
     private void CheckFolder(string folder) {
-        var error = CargoHelper.CheckFolder(folder, true);
-        Assert.IsTrue(error.Length == 0, error);
+        var error = CargoHelper.CheckFolder(folder, true, false);
+        Assert.IsTrue(string.IsNullOrEmpty(error), error);
     }
 
     public async ValueTask DisposeAsync() {

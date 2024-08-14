@@ -21,14 +21,14 @@ public class SubJobRunner : ISubJobRunner {
 
     private void CreateCleanUpDetails(SubJob subJob, Job job, out string error) {
         var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
-        error = CargoHelper.CheckFolder(folder, false);
-        if (error.Length != 0) {
+        error = CargoHelper.CheckFolder(folder, false, false);
+        if (!string.IsNullOrEmpty(error)) {
             return;
         }
 
         var dirInfo = CargoHelper.DirInfo(folder, out error);
         Debug.Assert(dirInfo != null);
-        Debug.Assert(error.Length == 0, error);
+        Debug.Assert(string.IsNullOrEmpty(error), error);
         foreach (var jobDetail in dirInfo.GetFiles(subJob.Wildcard).Select(f
                      => new SubJobDetail { FileName = f.Name, Description = string.Format(Properties.Resources.Deleting, f.Name) })) {
             subJob.SubJobDetails.Add(jobDetail);
@@ -43,9 +43,9 @@ public class SubJobRunner : ISubJobRunner {
         if (!Directory.Exists(destFolder)) { return; }
 
         var dirInfo = CargoHelper.DirInfo(folder, out var error);
-        Debug.Assert(error.Length == 0, error);
+        Debug.Assert(string.IsNullOrEmpty(error), error);
         var destDirInfo = CargoHelper.DirInfo(destFolder, out error);
-        Debug.Assert(error.Length == 0, error);
+        Debug.Assert(string.IsNullOrEmpty(error), error);
         foreach (var fileInfo in dirInfo.GetFiles(subJob.Wildcard)) {
             SubJobDetail jobDetail;
             if (destDirInfo.GetFiles(fileInfo.Name).Length == 0) {
@@ -73,9 +73,9 @@ public class SubJobRunner : ISubJobRunner {
         var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
         var destFolder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedDestinationFolder) + '\\';
         CargoHelper.DirInfo(folder, out var error);
-        Debug.Assert(error.Length == 0, error);
+        Debug.Assert(string.IsNullOrEmpty(error), error);
         CargoHelper.DirInfo(destFolder, out error);
-        Debug.Assert(error.Length == 0, error);
+        Debug.Assert(string.IsNullOrEmpty(error), error);
         var jobDetail = new SubJobDetail {Description = string.Format(Properties.Resources.Zipping, folder)};
         subJob.SubJobDetails.Add(jobDetail);
     }

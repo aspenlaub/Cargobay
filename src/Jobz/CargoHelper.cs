@@ -22,7 +22,7 @@ public class CargoHelper {
         _FolderResolver = folderResolver;
     }
 
-    public static string CheckFolder(string folder, bool test) {
+    public static string CheckFolder(string folder, bool test, bool createIfMissing) {
         if (folder[^1] != '\\') {
             return string.Format(Resources.FolderDoesNotEndWithBackslash, folder);
         }
@@ -35,6 +35,10 @@ public class CargoHelper {
 
         if (Directory.Exists(folder)) {
             return string.Empty;
+        }
+
+        if (!createIfMissing) {
+            return string.Format(Resources.FolderDoesNotExist, folder);
         }
 
         Directory.CreateDirectory(folder);
@@ -53,8 +57,8 @@ public class CargoHelper {
     }
 
     public static DirectoryInfo DirInfo(string folder, out string error) {
-        error = CheckFolder(folder, false);
-        return new DirectoryInfo(folder);
+        error = CheckFolder(folder, false, false);
+        return string.IsNullOrEmpty(error) ? new DirectoryInfo(folder) : null;
     }
 
     public async Task<List<string>> DownloadableAsync(string url, string wildcard, IErrorsAndInfos errorsAndInfos) {
@@ -66,7 +70,7 @@ public class CargoHelper {
         var wampFolder = (await _FolderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos)).FullName + "\\"
             + url.Remove(0, 20).Replace('/', '\\');
         var dirInfo = DirInfo(wampFolder, out var error);
-        if (error.Length != 0) {
+        if (!string.IsNullOrEmpty(error)) {
             return fileNames;
         }
 
@@ -114,7 +118,7 @@ public class CargoHelper {
         request.UseBinary = true;
         request.Method = method;
         request.Credentials = LookUpCredentials(uri, accessCodes, out error);
-        if (error.Length != 0) { return false; }
+        if (!string.IsNullOrEmpty(error)) { return false; }
 
         if (method != WebRequestMethods.Ftp.UploadFile) {
             return true;
