@@ -23,6 +23,7 @@ public class SubJobRunner : ISubJobRunner {
         var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
         error = CargoHelper.CheckFolder(folder, false, false);
         if (!string.IsNullOrEmpty(error)) {
+            error = "";
             return;
         }
 
