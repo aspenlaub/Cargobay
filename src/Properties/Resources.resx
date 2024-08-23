@@ -249,4 +249,7 @@
   <data name="Zipping" xml:space="preserve">
     <value>Zipping {0}</value>
   </data>
+  <data name="UrlMustStartWith" xml:space="preserve">
+    <value>URL must start with "{0}"</value>
+  </data>
 </root>

@@ -34,7 +34,13 @@ public class JobRunnerTest {
         var result = await _JobRunner.RunAsync(job, DateTime.Today, context,
             _SubJobRunner, _SubJobDetailRunner, new CrypticKey(), new Dictionary<string, Login>());
         Assert.IsTrue(result);
-        Assert.AreEqual(0, context.FeedbackToApplication.Count);
+        Assert.AreEqual(3, context.FeedbackToApplication.Count);
+        VerifyFeedbackToApplication(context.FeedbackToApplication[0],
+            FeedbackType.LogInformation, "");
+        VerifyFeedbackToApplication(context.FeedbackToApplication[1],
+            FeedbackType.LogInformation, job.Url);
+        VerifyFeedbackToApplication(context.FeedbackToApplication[2],
+            FeedbackType.LogInformation, "This page does nothing");
     }
 
     [TestMethod]
@@ -47,9 +53,18 @@ public class JobRunnerTest {
         var result = await _JobRunner.RunAsync(job, DateTime.Today, context,
             _SubJobRunner, _SubJobDetailRunner, new CrypticKey(), new Dictionary<string, Login>());
         Assert.IsFalse(result);
-        Assert.AreEqual(1, context.FeedbackToApplication.Count);
-        var feedbackToApplication = context.FeedbackToApplication[0];
-        Assert.AreEqual(FeedbackType.LogError, feedbackToApplication.Type);
-        Assert.AreEqual("404 Not Found", feedbackToApplication.Message);
+        Assert.AreEqual(3, context.FeedbackToApplication.Count);
+        VerifyFeedbackToApplication(context.FeedbackToApplication[0],
+            FeedbackType.LogInformation, "");
+        VerifyFeedbackToApplication(context.FeedbackToApplication[1],
+            FeedbackType.LogInformation, job.Url);
+        VerifyFeedbackToApplication(context.FeedbackToApplication[2],
+            FeedbackType.LogError, "404 Not Found");
+    }
+
+    private static void VerifyFeedbackToApplication(IFeedbackToApplication feedbackToApplication,
+            FeedbackType expectedType, string message) {
+        Assert.AreEqual(expectedType, feedbackToApplication.Type);
+        Assert.AreEqual(message, feedbackToApplication.Message.Trim());
     }
 }

@@ -89,17 +89,60 @@ public class JobRunner : IJobRunner {
         }
 
         var url = job.Url;
-        if (!url.StartsWith("http://localhost/")) {
-            return false;}
+
+        await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "    " });
+        await context.ReportAsync(new FeedbackToApplication {
+            Type = FeedbackType.LogInformation,
+            Message = "    " + url
+        });
+
+        const string urlStart = "http://localhost/";
+        if (!url.StartsWith(urlStart)) {
+            await context.ReportAsync(new FeedbackToApplication {
+                Type = FeedbackType.LogError,
+                Message = "    " + string.Format(Properties.Resources.UrlMustStartWith, urlStart)
+            });
+            return false;
+        }
 
         var client = new HttpClient();
         var result = await client.GetAsync(url);
-        if (result.IsSuccessStatusCode) { return true; }
+        if (result.IsSuccessStatusCode) {
+            await LogInformationFromUrlResultAsync(await result.Content.ReadAsStringAsync(), context);
+            return true;
+        }
 
         await context.ReportAsync(new FeedbackToApplication {
             Type = FeedbackType.LogError,
-            Message = $"{(int)result.StatusCode} {result.ReasonPhrase}"
+            Message = $"    {(int)result.StatusCode} {result.ReasonPhrase}"
         });
         return false;
+    }
+
+    private static async Task LogInformationFromUrlResultAsync(string contents,
+            IApplicationCommandExecutionContext context) {
+
+        var pos = -1;
+        do {
+            pos = contents.IndexOf("<div", pos + 1, StringComparison.InvariantCultureIgnoreCase);
+            if (pos < 0) {
+                return;
+            }
+
+            var pos2 = contents.IndexOf(">", pos + 1, StringComparison.InvariantCultureIgnoreCase);
+            if (pos2 < 0) {
+                continue;
+            }
+
+            var pos3 = contents.IndexOf("</div", pos2 + 1, StringComparison.InvariantCultureIgnoreCase);
+            if (pos3 < 0) {
+                continue;
+            }
+
+            await context.ReportAsync(new FeedbackToApplication {
+                Type = FeedbackType.LogInformation,
+                Message = "    " + contents.Substring(pos2 + 1, pos3 - pos2 - 1)
+            });
+        } while (true);
     }
 }

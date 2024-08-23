@@ -430,6 +430,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to URL must start with &quot;{0}&quot;.
+        /// </summary>
+        internal static string UrlMustStartWith {
+            get {
+                return ResourceManager.GetString("UrlMustStartWith", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Wildcard.
         /// </summary>
         internal static string Wildcard {
