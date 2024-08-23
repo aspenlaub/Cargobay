@@ -32,8 +32,8 @@ public class ExecuteCommand : IApplicationCommand {
         var sites = new HashSet<string>();
         var accessCodes = new Dictionary<string, Login>();
         foreach (var subJob in job.SubJobs.Where(subJob => subJob.Url.Length != 0)) {
-            CargoHelper.Site(subJob.Url, out var site, out var validUr);
-            if (!validUr) { continue; }
+            CargoHelper.Site(subJob.Url, out var site, out var validUrl);
+            if (!validUrl) { continue; }
             if (sites.Contains(site)) { continue; }
 
             var login = PasswordProvider.GetAccessCodes(site);

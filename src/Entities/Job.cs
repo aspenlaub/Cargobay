@@ -35,6 +35,9 @@ public class Job : IGuid, ISetGuid {
     [XmlAttribute("secondarymachine"), DefaultValue("")]
     public string SecondaryMachine { get; set; }
 
+    [XmlAttribute("url"), DefaultValue("")]
+    public string Url { get; set; }
+
     [XmlIgnore]
     public FolderAdjustmentState FolderAdjustmentState { get; set; }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Interfaces;
@@ -67,7 +68,11 @@ public class JobRunner : IJobRunner {
         }
     }
 
-    public async Task<bool> RunAsync(Job job, DateTime today, IApplicationCommandExecutionContext context, ISubJobRunner runner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
+    public async Task<bool> RunAsync(Job job, DateTime today, IApplicationCommandExecutionContext context,
+            ISubJobRunner runner, ISubJobDetailRunner detailRunner,
+            CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
+        if (!await RunCleanUpUrlAsync(job, context)) { return false; }
+
         foreach (var nextSubJob in job.SubJobs) {
             await runner.PreviewAsync(nextSubJob, job, true, context, detailRunner, accessCodes);
             if (!await runner.RunAsync(nextSubJob, today, job, context, detailRunner, crypticKey, accessCodes)) {
@@ -76,5 +81,25 @@ public class JobRunner : IJobRunner {
         }
 
         return true;
+    }
+
+    private static async Task<bool> RunCleanUpUrlAsync(Job job, IApplicationCommandExecutionContext context) {
+        if (job.JobType != CargoJobType.CleanUp || string.IsNullOrEmpty(job.Url)) {
+            return true;
+        }
+
+        var url = job.Url;
+        if (!url.StartsWith("http://localhost/")) {
+            return false;}
+
+        var client = new HttpClient();
+        var result = await client.GetAsync(url);
+        if (result.IsSuccessStatusCode) { return true; }
+
+        await context.ReportAsync(new FeedbackToApplication {
+            Type = FeedbackType.LogError,
+            Message = $"{(int)result.StatusCode} {result.ReasonPhrase}"
+        });
+        return false;
     }
 }

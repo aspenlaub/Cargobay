@@ -228,7 +228,7 @@ public class CargoHelper {
         var status = response.StatusDescription;
         response.Close();
         request.Abort();
-        if (status.Substring(0, 3) == "226" && !status.Contains("Transfer aborted")) { return true; }
+        if (status?.Substring(0, 3) == "226" && !status.Contains("Transfer aborted")) { return true; }
         if (!CreateWebRequest(uri, WebRequestMethods.Ftp.DeleteFile, accessCodes, out errorMessage, out request)) {
             error.Value = errorMessage;
             return false;
