@@ -2,6 +2,8 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
+#pragma warning disable SYSLIB0021
+
 namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Access;
 
 public class Sha1Encrypter {

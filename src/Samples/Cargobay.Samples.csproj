@@ -25,6 +25,6 @@
     <None Include="CargoJobs2.xml" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Vishizhukel" Version="2.0.1960.818" />
+    <PackageReference Include="Vishizhukel" Version="2.0.1965.1050" />
   </ItemGroup>
 </Project>

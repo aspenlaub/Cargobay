@@ -10,6 +10,8 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Resources = Aspenlaub.Net.GitHub.CSharp.Cargobay.Properties.Resources;
 
+#pragma warning disable SYSLIB0014
+
 namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz;
 
 public class CargoHelper {
