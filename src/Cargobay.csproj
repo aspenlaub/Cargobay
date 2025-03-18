@@ -77,6 +77,6 @@
   <ItemGroup>
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
-    <PackageReference Include="Vishizhukel" Version="2.0.2058.1279" />
+    <PackageReference Include="Vishizhukel" Version="2.0.2064.1168" />
   </ItemGroup>
 </Project>
