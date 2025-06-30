@@ -28,7 +28,7 @@ public class JobRunnerTest {
     public async Task CanRunCleanUpTaskWithUrl() {
         var job = new Job {
             JobType = CargoJobType.CleanUp,
-            Url = "http://localhost/kunden/vvsbigband.de/webseiten/viperfisch/nothing/index.php"
+            Url = "http://localhost/kunden/vvsbigband.de/viperfisch.de/webseiten/viperfisch/nothing/index.php"
         };
         var context = new FakeCommandExecutionContext();
         var result = await _JobRunner.RunAsync(job, DateTime.Today, context,
