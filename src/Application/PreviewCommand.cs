@@ -29,11 +29,11 @@ public class PreviewCommand : IApplicationCommand {
         var sites = new HashSet<string>();
         var accessCodes = new Dictionary<string, Login>();
         foreach (var subJob in job.SubJobs.Where(subJob => subJob.Url.Length != 0)) {
-            CargoHelper.Site(subJob.Url, out var site, out var validUr);
+            CargoHelper.SiteAndUserId(subJob.Url, out var site, out var userId, out var validUr);
             if (!validUr) { continue; }
             if (sites.Contains(site)) { continue; }
 
-            var login = PasswordProvider.GetAccessCodes(site);
+            var login = PasswordProvider.GetAccessCodes(site, userId);
             if (login == null) { continue; }
 
             accessCodes[site] = login;

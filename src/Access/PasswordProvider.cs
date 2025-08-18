@@ -19,16 +19,18 @@ public class PasswordProvider : IPasswordProvider {
         return login;
     }
 
-    public Login GetAccessCodes(string clue) {
-        return GetAccessCodes(clue, null);
+    public Login GetAccessCodes(string clue, string userId) {
+        return GetAccessCodes(clue, userId, null);
     }
 
-    public Login GetAccessCodes(string clue, IAccessCodePrompt accessCodePrompt) {
+    public Login GetAccessCodes(string clue, string userId, IAccessCodePrompt accessCodePrompt) {
         var silent = accessCodePrompt == null;
         if (SecurityCodes.TryGetValue(clue, out var codes)) { return codes; }
         if (silent) { return null; }
 
         accessCodePrompt.Clue = clue;
+        accessCodePrompt.Identification = userId;
+        accessCodePrompt.SetFocusOnAppropriateField();
         accessCodePrompt.ShowDialog();
         return !accessCodePrompt.GoodCode ? null : AddAccessCodes(clue, accessCodePrompt.Identification, accessCodePrompt.Password);
     }

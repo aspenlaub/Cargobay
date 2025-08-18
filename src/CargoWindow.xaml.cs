@@ -128,12 +128,12 @@ public partial class CargoWindow : IJobSelector, ICrypticKeyProvider, IPasswordP
         return CrypticKey;
     }
 
-    public Login GetAccessCodes(string clue) {
-        return GetAccessCodes(clue, new AccessCodePrompt());
+    public Login GetAccessCodes(string clue, string userId) {
+        return GetAccessCodes(clue, userId, new AccessCodePrompt());
     }
 
-    public Login GetAccessCodes(string clue, IAccessCodePrompt accessCodePrompt) {
-        return PasswordProvider.GetAccessCodes(clue, accessCodePrompt);
+    public Login GetAccessCodes(string clue, string userId, IAccessCodePrompt accessCodePrompt) {
+        return PasswordProvider.GetAccessCodes(clue, userId, accessCodePrompt);
     }
 
     private void OnClosed(object sender, EventArgs e) {
