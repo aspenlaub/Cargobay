@@ -254,13 +254,9 @@ public class CargoJobCollectionTest {
         await PrepareFourthDayAsync(context, runner, subRunner, detailRunner, crypticKey, accessCodes, sampleRootFolder, sampleFileSystemRootFolder, cargoJobs);
         await InitCase456Async(context, sampleRootFolder, sampleFileSystemRootFolder, cargoJobs, "");
         new Folder(sampleFileSystemRootFolder.Value).SubFolder("Traveller").SubFolder("Download").CreateIfNecessary();
-        string downloadedWebZipFile = sampleFileSystemRootFolder.Value + @"\Traveller\Download\webseiten100825.7zip";
-        Assert.IsFalse(File.Exists(downloadedWebZipFile), "Downloaded web zip exists.");
         var currentDate = new DateTime(2010, 8, 28);
         await RunJobAsync(cargoJobs, "ZipWamp", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
         await RunJobAsync(cargoJobs, "UploadZip", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
-        await RunJobAsync(cargoJobs, "DownloadZip", currentDate, runner, subRunner, detailRunner, crypticKey, accessCodes);
-        Assert.IsTrue(File.Exists(downloadedWebZipFile), "Downloaded web zip does not exist.");
     }
 
     private async Task PrepareFourthDayAsync(CargoJobCollectionTestExecutionContext context, IJobRunner runner, ISubJobRunner subRunner, ISubJobDetailRunner detailRunner, CrypticKey crypticKey, Dictionary<string, Login> accessCodes, CargoString sampleRootFolder, CargoString sampleFileSystemRootFolder, List<Job> cargoJobs) {

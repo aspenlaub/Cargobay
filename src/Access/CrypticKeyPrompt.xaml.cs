@@ -6,8 +6,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Access;
 
 public partial class CrypticKeyPrompt : ICrypticKeyPrompt {
     public string Clue {
-        get => ClueLabel.Content.ToString();
-        set => ClueLabel.Content = value;
+        get { return ClueLabel.Content.ToString(); }
+        set { ClueLabel.Content = value; }
     }
 
     public string Key => KeyTextBox.Password;

@@ -58,24 +58,6 @@ public class CargoHelper(IFolderResolver folderResolver) {
         return string.IsNullOrEmpty(error) ? new DirectoryInfo(folder) : null;
     }
 
-    public async Task<List<string>> DownloadableAsync(string url, string wildcard, IErrorsAndInfos errorsAndInfos) {
-        var fileNames = new List<string>();
-        if (url.Substring(0, 20) != "ftp://ftp.localhost/") {
-            return fileNames;
-        }
-
-        string wampFolder = (await folderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos)).FullName + "\\"
-            + url.Remove(0, 20).Replace('/', '\\');
-        DirectoryInfo dirInfo = DirInfo(wampFolder, out string error);
-        if (!string.IsNullOrEmpty(error)) {
-            return fileNames;
-        }
-
-        fileNames.AddRange(dirInfo.GetFiles(wildcard).Select(fileInfo => fileInfo.Name));
-
-        return fileNames;
-    }
-
     protected static NetworkCredential LookUpCredentials(string url, Dictionary<string, Login> accessCodes, out string error) {
         error = "";
         SiteAndUserId(url, out string site, out string _, out bool validUrl);
@@ -134,63 +116,6 @@ public class CargoHelper(IFolderResolver folderResolver) {
         return true;
     }
 
-    public async Task<bool> DownloadUsingFtpAsync(string url, string localFileFullName, bool checkOnly, Dictionary<string, Login> accessCodes, CargoString error, CargoBool couldConnect) {
-        const int bufferSize = 2048;
-        byte[] buffer = new byte[bufferSize + 256];
-
-        error.Value = string.Empty;
-        couldConnect.Value = false;
-        if (url.Substring(0, 20) == "ftp://ftp.localhost/") {
-            couldConnect.Value = true;
-            var errorsAndInfos = new ErrorsAndInfos();
-            string wampFile = (await folderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos)).FullName + "\\"
-                + url.Remove(0, 20).Replace('/', '\\');
-            if (errorsAndInfos.AnyErrors()) {
-                error.Value = errorsAndInfos.ErrorsToString();
-                return false;
-            }
-            if (checkOnly) {
-                return File.Exists(wampFile);
-            }
-
-            File.Copy(wampFile, localFileFullName);
-            return true;
-        }
-
-        if (!CreateFtpWebRequest(url, WebRequestMethods.Ftp.DownloadFile, accessCodes, out string errorMessage, out FtpWebRequest request)) {
-            error.Value = errorMessage;
-            return false;
-        }
-
-        try {
-            var response = (FtpWebResponse)request.GetResponse();
-            couldConnect.Value = response.IsMutuallyAuthenticated;
-            Stream ftpStream = response.GetResponseStream();
-            var outputStream = new FileStream(localFileFullName, FileMode.Create);
-            int readCount = await ftpStream.ReadAsync(buffer, 0, bufferSize);
-            if (!checkOnly) {
-                while (readCount > 0) {
-                    outputStream.Write(buffer, 0, readCount);
-                    readCount = await ftpStream.ReadAsync(buffer, 0, bufferSize);
-                }
-            }
-
-            ftpStream.Close();
-            outputStream.Close();
-            response.Close();
-        } catch (WebException e) {
-            error.Value = e.Message;
-            return false;
-        }
-
-        return true;
-    }
-
-    public async Task<bool> DownloadUsingSftpAsync(string url, string localFileFullName, bool checkOnly, Dictionary<string, Login> accessCodes, CargoString error, CargoBool couldConnect) {
-        error.Value = "Not implemented yet";
-        return await Task.FromResult(false);
-    }
-
     public async Task<bool> UploadUsingFtpAsync(string url, string localFileFullName, Dictionary<string, Login> accessCodes, CargoString error) {
         FtpWebResponse response;
 
@@ -245,9 +170,30 @@ public class CargoHelper(IFolderResolver folderResolver) {
         return false;
     }
 
-    public async Task<bool> UploadUsingSftpAsync(string url, string localFileFullName, Dictionary<string, Login> accessCodes, CargoString error) {
-        error.Value = "Not implemented yet";
-        return await Task.FromResult(false);
+    public bool UploadUsingSftp(string url, string localFileFullName, Dictionary<string, Login> accessCodes, CargoString error) {
+        error.Value = "";
+
+        SiteAndUserId(url, out string site, out string _, out bool validUrl);
+        if (!validUrl) {
+            error.Value = "Invalid URL";
+            return false;
+        }
+
+        string directoryAndFileName = url.Substring(url.IndexOf(site, StringComparison.InvariantCulture) + site.Length);
+
+        NetworkCredential credentials = LookUpCredentials(url, accessCodes, out string error2);
+        if (error2 != "") {
+            error.Value = error2;
+            return false;
+        }
+
+        using var client = new SftpClient(site, credentials.UserName, credentials.Password);
+        client.Connect();
+
+        using FileStream fs = File.OpenRead(localFileFullName);
+        client.UploadFile(fs, directoryAndFileName);
+
+        return true;
     }
 
     public async Task<bool> FileExistsUsingFtpAsync(string url, Dictionary<string, Login> accessCodes, CargoBool couldConnect, CargoString error) {
@@ -317,8 +263,11 @@ public class CargoHelper(IFolderResolver folderResolver) {
             error.Value = error2;
             return false;
         }
+
         using var client = new SftpClient(site, credentials.UserName, credentials.Password);
         client.Connect();
+
+        couldConnect.Value = true;
 
         return client.ListDirectory(directory).Any(file => file.Name == fileName);
     }

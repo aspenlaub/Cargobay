@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Cargobay.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
-using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
-using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Vishizhukel.Application;
 using Aspenlaub.Net.GitHub.CSharp.Vishizhukel.Interfaces.Application;
@@ -105,28 +103,6 @@ public class SubJobRunner : ISubJobRunner {
         }
     }
 
-    private async Task CreateDownloadDetailsAsync(SubJob subJob, Job job, CargoString error) {
-        var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
-        var errorsAndInfos = new ErrorsAndInfos();
-        var fileNames = await _CargoHelper.DownloadableAsync(subJob.Url, subJob.Wildcard, errorsAndInfos);
-        if (errorsAndInfos.AnyErrors()) {
-            error.Value = errorsAndInfos.ErrorsToString();
-            return;
-        }
-
-        foreach (var fileName in fileNames) {
-            if (File.Exists(folder + fileName)) {
-                continue;
-            }
-
-            var jobDetail = new SubJobDetail {
-                FileName = fileName,
-                Description = string.Format(Properties.Resources.DownloadingNewFile, fileName)
-            };
-            subJob.SubJobDetails.Add(jobDetail);
-        }
-    }
-
     private static async Task ExecutionLogEntryAsync(IApplicationCommandExecutionContext context, string caption, string value) {
         await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "    " + (caption + "        ").Substring(0, 8) + " : " + value });
     }
@@ -199,10 +175,6 @@ public class SubJobRunner : ISubJobRunner {
                 break;
             case CargoJobType.Upload: {
                 await CreateUploadDetailsAsync(subJob, job, context, accessCodes, error);
-            }
-                break;
-            case CargoJobType.Download: {
-                await CreateDownloadDetailsAsync(subJob, job, error);
             }
                 break;
         }

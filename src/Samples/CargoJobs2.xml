@@ -16,9 +16,6 @@
   <Job name="UploadZip" description="Upload zip files" type="Upload">
     <SubJob folder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Webdev" wildcard="webseiten*.*zip" url="ftp://ftp.localhost/download/" />
   </Job>	
-  <Job name="DownloadZip" description="Download zip files" type="Download">
-    <SubJob folder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Download" wildcard="webseiten*.*zip" url="ftp://ftp.localhost/download/" />
-  </Job>	
   <Job name="ArchiveNessies" description="Archive nessies" type="TransferChanged">
     <SubJob folder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Nessies\In Arbeit" destinationfolder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Nessies\Archiv" wildcard="*.mx*" />
     <SubJob folder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Nessies\In Arbeit" destinationfolder="$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Nessies\Archiv" wildcard="*.0*" />

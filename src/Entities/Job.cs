@@ -50,7 +50,7 @@ public class Job : IGuid, ISetGuid {
             }
             return _PrivateAdjustedFolder;
         }
-        set => _PrivateAdjustedFolder = value;
+        set { _PrivateAdjustedFolder = value; }
     }
 
     private string _PrivateAdjustedDestinationFolder;
@@ -62,7 +62,7 @@ public class Job : IGuid, ISetGuid {
             }
             return _PrivateAdjustedDestinationFolder;
         }
-        set => _PrivateAdjustedDestinationFolder = value;
+        set { _PrivateAdjustedDestinationFolder = value; }
     }
 
     public Job() {

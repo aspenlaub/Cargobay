@@ -144,15 +144,6 @@
   <data name="DestinationFileStillExists" xml:space="preserve">
     <value>ERROR: the destination file still exists</value>
   </data>
-  <data name="DownloadFailed" xml:space="preserve">
-    <value>A problem occurred during download</value>
-  </data>
-  <data name="DownloadingNewFile" xml:space="preserve">
-    <value>Downloading new file {0}</value>
-  </data>
-  <data name="DownloadSuccessful" xml:space="preserve">
-    <value>Downloaded successfully</value>
-  </data>
   <data name="Error" xml:space="preserve">
     <value>ERROR: {0}</value>
   </data>

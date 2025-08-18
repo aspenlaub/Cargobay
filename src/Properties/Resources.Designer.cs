@@ -142,33 +142,6 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A problem occurred during download.
-        /// </summary>
-        internal static string DownloadFailed {
-            get {
-                return ResourceManager.GetString("DownloadFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Downloading new file {0}.
-        /// </summary>
-        internal static string DownloadingNewFile {
-            get {
-                return ResourceManager.GetString("DownloadingNewFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Downloaded successfully.
-        /// </summary>
-        internal static string DownloadSuccessful {
-            get {
-                return ResourceManager.GetString("DownloadSuccessful", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to ERROR: {0}.
         /// </summary>
         internal static string Error {

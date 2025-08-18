@@ -182,37 +182,11 @@ public class SubJobDetailRunner(ISecretRepository secretRepository) : ISubJobDet
         return true;
     }
 
-    private async Task<bool> DownloadAsync(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context, Dictionary<string, Login> accessCodes) {
-        string folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
-        var error = new CargoString();
-        var couldConnect = new CargoBool();
-        if (subJob.Url.StartsWith("sftp")) {
-            if (await _CargoHelper.DownloadUsingSftpAsync(subJob.Url + subJobDetail.FileName, folder + subJobDetail.FileName, false, accessCodes, error, couldConnect)) {
-                await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = _indent + Properties.Resources.DownloadSuccessful });
-                return true;
-            }
-        } else if (await _CargoHelper.DownloadUsingFtpAsync(subJob.Url + subJobDetail.FileName, folder + subJobDetail.FileName, false, accessCodes, error, couldConnect)) {
-            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = _indent + Properties.Resources.DownloadSuccessful });
-            return true;
-        }
-
-        if (!couldConnect.Value) {
-            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogError, Message = _indent + Properties.Resources.NoConnection });
-            return false;
-        }
-
-        await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogError, Message = _indent + Properties.Resources.DownloadFailed });
-        if (error.Value.Length != 0) {
-            await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogError, Message = error.Value });
-        }
-        return false;
-    }
-
     private async Task<bool> UploadAsync(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context, Dictionary<string, Login> accessCodes) {
         string folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
         var error = new CargoString();
         if (subJob.Url.StartsWith("sftp")) {
-            if (await _CargoHelper.UploadUsingSftpAsync(subJob.Url + subJobDetail.FileName, folder + subJobDetail.FileName, accessCodes, error)) {
+            if (_CargoHelper.UploadUsingSftp(subJob.Url + subJobDetail.FileName, folder + subJobDetail.FileName, accessCodes, error)) {
                 await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = _indent + Properties.Resources.UploadSuccessful });
                 return true;
             }
@@ -242,9 +216,6 @@ public class SubJobDetailRunner(ISecretRepository secretRepository) : ISubJobDet
             }
             case CargoJobType.Upload: {
                 return await UploadAsync(subJobDetail, job, subJob, context, accessCodes);
-            }
-            case CargoJobType.Download: {
-                return await DownloadAsync(subJobDetail, job, subJob, context, accessCodes);
             }
         }
 
