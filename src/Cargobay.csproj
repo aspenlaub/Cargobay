@@ -76,8 +76,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
-    <PackageReference Include="SSH.NET" Version="2025.0.0" />
+    <PackageReference Include="SSH.NET" Version="2025.1.0" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
-    <PackageReference Include="Vishizhukel" Version="2.0.2280.543" />
+    <PackageReference Include="Vishizhukel" Version="2.0.2288.775" />
   </ItemGroup>
 </Project>
