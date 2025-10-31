@@ -34,7 +34,7 @@ public class JobRunnerTest {
         var result = await _JobRunner.RunAsync(job, DateTime.Today, context,
             _SubJobRunner, _SubJobDetailRunner, new CrypticKey(), new Dictionary<string, Login>());
         Assert.IsTrue(result);
-        Assert.AreEqual(3, context.FeedbackToApplication.Count);
+        Assert.HasCount(3, context.FeedbackToApplication);
         VerifyFeedbackToApplication(context.FeedbackToApplication[0],
             FeedbackType.LogInformation, "");
         VerifyFeedbackToApplication(context.FeedbackToApplication[1],
@@ -53,7 +53,7 @@ public class JobRunnerTest {
         var result = await _JobRunner.RunAsync(job, DateTime.Today, context,
             _SubJobRunner, _SubJobDetailRunner, new CrypticKey(), new Dictionary<string, Login>());
         Assert.IsFalse(result);
-        Assert.AreEqual(3, context.FeedbackToApplication.Count);
+        Assert.HasCount(3, context.FeedbackToApplication);
         VerifyFeedbackToApplication(context.FeedbackToApplication[0],
             FeedbackType.LogInformation, "");
         VerifyFeedbackToApplication(context.FeedbackToApplication[1],

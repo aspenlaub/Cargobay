@@ -122,12 +122,13 @@ public class CargoHelper(IFolderResolver folderResolver) {
         error.Value = string.Empty;
         if (url.Substring(0, 20) == "ftp://ftp.localhost/") {
             var errorsAndInfos = new ErrorsAndInfos();
-            string wampFile = (await folderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos)).FullName + "\\"
-                + url.Remove(0, 20).Replace('/', '\\');
+            IFolder wampFolder = await folderResolver.ResolveAsync(@"$(GitHub)\Cargobay\src\Samples\FileSystem\Traveller\Wamp", errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) {
                 error.Value = errorsAndInfos.ErrorsToString();
                 return false;
             }
+            wampFolder.CreateIfNecessary();
+            string wampFile = wampFolder.FullName + "\\" + url.Remove(0, 20).Replace('/', '\\');
             File.Copy(localFileFullName, wampFile);
             return true;
         }

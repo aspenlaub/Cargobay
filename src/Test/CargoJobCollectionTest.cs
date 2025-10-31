@@ -72,7 +72,7 @@ public class CargoJobCollectionTest {
         errorsAndInfos = new ErrorsAndInfos();
         CargoJobs jobsRev = await JobsExtensions.LoadAsync(_Container.Resolve<IXmlDeserializer>(), _Container.Resolve<IJobFolderAdjuster>(), destFolder, destFile, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
-        Assert.IsTrue(jobsRev.Count == 2);
+        Assert.HasCount(2, jobsRev);
         File.Delete(destFolder + destFile);
     }
 
@@ -90,9 +90,9 @@ public class CargoJobCollectionTest {
         var errorsAndInfos = new ErrorsAndInfos();
         CargoJobs cargoJobs = await JobsExtensions.LoadAsync(_Container.Resolve<IXmlDeserializer>(), _Container.Resolve<IJobFolderAdjuster>(), sourceFolder, sourceFile, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
-        Assert.IsTrue(cargoJobs.Count == 4, "Four jobs expected, read " + cargoJobs.Count);
-        Assert.IsTrue(cargoJobs[0].SubJobs.Count > 20);
-        Assert.IsTrue(cargoJobs[0].SubJobs[0].LogicalFolder.Length > 5);
+        Assert.HasCount(4, cargoJobs, "Four jobs expected, read " + cargoJobs.Count);
+        Assert.IsGreaterThan(20, cargoJobs[0].SubJobs.Count);
+        Assert.IsGreaterThan(5, cargoJobs[0].SubJobs[0].LogicalFolder.Length);
         cargoJobs.Save(_Container.Resolve<IXmlSerializer>(), destFile);
         string sourceContents = RemoveVersionNumber(await File.ReadAllTextAsync(sourceFolder + sourceFile, Encoding.UTF8));
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
@@ -285,7 +285,7 @@ public class CargoJobCollectionTest {
         CargoJobs jobs = await secretRepository.GetAsync(secret, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
         Assert.IsNotNull(jobs);
-        Assert.IsTrue(jobs.Count > 10, $"Only {jobs.Count} job/-s found");
+        Assert.IsGreaterThan(10, jobs.Count, $"Only {jobs.Count} job/-s found");
         Job jobWithSubJobs = jobs.FirstOrDefault(j => j.SubJobs.Count > 10);
         Assert.IsNotNull(jobWithSubJobs, "Excepted at least one job with more than 10 sub jobs");
     }
@@ -297,17 +297,17 @@ internal class CargoJobCollectionTestExecutionContext : IAsyncDisposable {
     internal string SampleRootFolder { get; private set; }
     internal string SampleFileSystemRootFolder { get; private set; }
 
-    internal async Task WriteAllTextAsync(string folder, string fileName, string contents) {
+    internal async Task WriteAllTextAsync(string folder, string fileName, string contents, bool createFolderIfNecessary) {
         await SetSampleRootFolderIfNecessaryAsync();
 
-        CheckFolder(folder);
+        CheckFolder(folder, createFolderIfNecessary);
         await File.WriteAllTextAsync(folder + fileName, contents, Encoding.UTF8);
     }
 
     private async Task ResetFileSystemAsync(string folder) {
         await SetSampleRootFolderIfNecessaryAsync();
 
-        CheckFolder(folder);
+        CheckFolder(folder, true);
         var dirInfo = new DirectoryInfo(folder);
         foreach (DirectoryInfo subDirInfo in dirInfo.GetDirectories()) {
             await ResetFileSystemAsync(subDirInfo.FullName + '\\');
@@ -317,8 +317,8 @@ internal class CargoJobCollectionTestExecutionContext : IAsyncDisposable {
         }
     }
 
-    private void CheckFolder(string folder) {
-        string error = CargoHelper.CheckFolder(folder, true, false);
+    private void CheckFolder(string folder, bool createIfMissing) {
+        string error = CargoHelper.CheckFolder(folder, true, createIfMissing);
         Assert.IsTrue(string.IsNullOrEmpty(error), error);
     }
 
@@ -346,18 +346,18 @@ internal class CargoJobCollectionTestExecutionContext : IAsyncDisposable {
         const string initialContents = "This is a test file in its initial state.";
 
         string folder = fileSystemRootFolder + @"\Traveller\Nessies\In Arbeit\";
-        await WriteAllTextAsync(folder, "cargo.mxi", initialContents);
-        await WriteAllTextAsync(folder, "cargo.mxt", initialContents);
-        await WriteAllTextAsync(folder, "cargo.mxd", initialContents);
-        await WriteAllTextAsync(folder, "cargo.001", initialContents);
-        await WriteAllTextAsync(folder, "cargo.002", initialContents);
+        await WriteAllTextAsync(folder, "cargo.mxi", initialContents, true);
+        await WriteAllTextAsync(folder, "cargo.mxt", initialContents, false);
+        await WriteAllTextAsync(folder, "cargo.mxd", initialContents, false);
+        await WriteAllTextAsync(folder, "cargo.001", initialContents, false);
+        await WriteAllTextAsync(folder, "cargo.002", initialContents, false);
         folder = fileSystemRootFolder + @"\Traveller\Wamp\";
-        await WriteAllTextAsync(folder, "cargo.php", initialContents);
+        await WriteAllTextAsync(folder, "cargo.php", initialContents, true);
         folder = fileSystemRootFolder + @"\Traveller\Wamp\temp\";
-        await WriteAllTextAsync(folder, "cargo.css", initialContents);
-        await WriteAllTextAsync(folder, "cargo.jpg", initialContents);
+        await WriteAllTextAsync(folder, "cargo.css", initialContents, true);
+        await WriteAllTextAsync(folder, "cargo.jpg", initialContents, false);
         folder = fileSystemRootFolder + @"\Traveller\Wamp\mid\";
-        await WriteAllTextAsync(folder, "cargo.mid", initialContents);
+        await WriteAllTextAsync(folder, "cargo.mid", initialContents, true);
     }
 
 }

@@ -9,6 +9,7 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Autofac;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+[assembly: DoNotParallelize]
 namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Test.Components;
 
 [TestClass]
@@ -32,17 +33,17 @@ public class JobFolderAdjusterTest {
                 }
             }
         };
-        Assert.AreEqual(job.FolderAdjustmentState, FolderAdjustmentState.NotAdjusted);
-        Assert.AreEqual(job.SubJobs[0].FolderAdjustmentState, FolderAdjustmentState.NotAdjusted);
+        Assert.AreEqual(FolderAdjustmentState.NotAdjusted, job.FolderAdjustmentState);
+        Assert.AreEqual(FolderAdjustmentState.NotAdjusted, job.SubJobs[0].FolderAdjustmentState);
         var errorsAndInfos = new ErrorsAndInfos();
         await sut.AdjustJobAndSubFoldersAsync(job, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
         var resolver = container.Resolve<IFolderResolver>();
         var cSharpFolder = await resolver.ResolveAsync("$(CSharp)", errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
-        Assert.AreEqual(job.FolderAdjustmentState, FolderAdjustmentState.Adjusted);
-        Assert.AreEqual(job.SubJobs[0].FolderAdjustmentState, FolderAdjustmentState.Adjusted);
-        Assert.AreEqual(job.SubJobs[1].FolderAdjustmentState, FolderAdjustmentState.Adjusted);
+        Assert.AreEqual(FolderAdjustmentState.Adjusted, job.FolderAdjustmentState);
+        Assert.AreEqual(FolderAdjustmentState.Adjusted, job.SubJobs[0].FolderAdjustmentState);
+        Assert.AreEqual(FolderAdjustmentState.Adjusted, job.SubJobs[1].FolderAdjustmentState);
         Assert.AreEqual(cSharpFolder.FullName, job.AdjustedFolder);
         Assert.AreEqual(cSharpFolder.FullName + @"\Cargobay", job.AdjustedDestinationFolder);
         Assert.AreEqual(cSharpFolder.FullName + @"\Cargobay\Components", job.SubJobs[0].AdjustedFolder);
