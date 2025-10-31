@@ -304,13 +304,13 @@ internal class CargoJobCollectionTestExecutionContext : IAsyncDisposable {
         await File.WriteAllTextAsync(folder + fileName, contents, Encoding.UTF8);
     }
 
-    private async Task ResetFileSystemAsync(string folder) {
+    private async Task ResetFileSystemAsync(string folder, bool createFoldersIfNecessary) {
         await SetSampleRootFolderIfNecessaryAsync();
 
-        CheckFolder(folder, true);
+        CheckFolder(folder, createFoldersIfNecessary);
         var dirInfo = new DirectoryInfo(folder);
         foreach (DirectoryInfo subDirInfo in dirInfo.GetDirectories()) {
-            await ResetFileSystemAsync(subDirInfo.FullName + '\\');
+            await ResetFileSystemAsync(subDirInfo.FullName + '\\', createFoldersIfNecessary);
         }
         foreach (FileInfo fileInfo in dirInfo.GetFiles("*.*")) {
             File.Delete(fileInfo.FullName);
@@ -340,7 +340,7 @@ internal class CargoJobCollectionTestExecutionContext : IAsyncDisposable {
 
     private async Task ResetFileSystemAsync(bool initialize) {
         string fileSystemRootFolder = SampleFileSystemRootFolder;
-        await ResetFileSystemAsync(fileSystemRootFolder + '\\');
+        await ResetFileSystemAsync(fileSystemRootFolder + '\\', initialize);
         if (!initialize) { return; }
 
         const string initialContents = "This is a test file in its initial state.";
