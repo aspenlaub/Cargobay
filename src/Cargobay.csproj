@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <LangVersion>latest</LangVersion>
     <ProjectGuid>{78C3B290-ECE4-4108-839A-6723D1A9B514}</ProjectGuid>
