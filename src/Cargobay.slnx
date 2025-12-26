@@ -1,0 +1,13 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="Mixed Platforms" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Cargobay.csproj" />
+  <Project Path="Samples/Cargobay.Samples.csproj" />
+  <Project Path="Test/Cargobay.Test.csproj" />
+  <Properties Name="TestCaseManagementSettings" Scope="PostLoad">
+    <Property Name="CategoryFile" Value="Cargobay.vsmdi" />
+  </Properties>
+</Solution>
