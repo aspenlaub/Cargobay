@@ -10,11 +10,11 @@ using Aspenlaub.Net.GitHub.CSharp.Vishizhukel.Interfaces.Application;
 namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz;
 
 public class JobRunner : IJobRunner {
-    protected bool IsPrimaryMachine(Job job) {
+    protected static bool IsPrimaryMachine(Job job) {
         return Environment.MachineName.ToUpper() == job.Machine.ToUpper();
     }
 
-    protected bool IsSecondaryMachine(Job job) {
+    protected static bool IsSecondaryMachine(Job job) {
         return Environment.MachineName.ToUpper() == job.SecondaryMachine.ToUpper() || job.Machine == "";
     }
 
@@ -26,7 +26,7 @@ public class JobRunner : IJobRunner {
         return IsPrimaryMachine(job) || IsSecondaryMachine(job);
     }
 
-    private async Task ExecutionLogEntryAsync(IApplicationCommandExecutionContext context, string caption, string value) {
+    private static async Task ExecutionLogEntryAsync(IApplicationCommandExecutionContext context, string caption, string value) {
         await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = (caption + "            ").Substring(0, 12) + " : " + value });
     }
 
@@ -63,7 +63,7 @@ public class JobRunner : IJobRunner {
             await ExecutionLogEntryAsync(context, Properties.Resources.Name, job.Name);
         }
         await ExecutionLogEntryAsync(context, Properties.Resources.Type, Enum.GetName(typeof(CargoJobType), job.JobType));
-        foreach (var subJob in job.SubJobs) {
+        foreach (SubJob subJob in job.SubJobs) {
             await runner.PreviewAsync(subJob, job, false, context, detailRunner, accessCodes);
         }
     }
@@ -73,7 +73,7 @@ public class JobRunner : IJobRunner {
             CrypticKey crypticKey, Dictionary<string, Login> accessCodes) {
         if (!await RunCleanUpUrlAsync(job, context)) { return false; }
 
-        foreach (var nextSubJob in job.SubJobs) {
+        foreach (SubJob nextSubJob in job.SubJobs) {
             await runner.PreviewAsync(nextSubJob, job, true, context, detailRunner, accessCodes);
             if (!await runner.RunAsync(nextSubJob, today, job, context, detailRunner, crypticKey, accessCodes)) {
                 return false;
@@ -88,7 +88,7 @@ public class JobRunner : IJobRunner {
             return true;
         }
 
-        var url = job.Url;
+        string url = job.Url;
 
         await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "    " });
         await context.ReportAsync(new FeedbackToApplication {
@@ -106,7 +106,7 @@ public class JobRunner : IJobRunner {
         }
 
         var client = new HttpClient();
-        var result = await client.GetAsync(url);
+        HttpResponseMessage result = await client.GetAsync(url);
         if (result.IsSuccessStatusCode) {
             await LogInformationFromUrlResultAsync(await result.Content.ReadAsStringAsync(), context);
             return true;
@@ -122,19 +122,19 @@ public class JobRunner : IJobRunner {
     private static async Task LogInformationFromUrlResultAsync(string contents,
             IApplicationCommandExecutionContext context) {
 
-        var pos = -1;
+        int pos = -1;
         do {
             pos = contents.IndexOf("<div", pos + 1, StringComparison.InvariantCultureIgnoreCase);
             if (pos < 0) {
                 return;
             }
 
-            var pos2 = contents.IndexOf(">", pos + 1, StringComparison.InvariantCultureIgnoreCase);
+            int pos2 = contents.IndexOf(">", pos + 1, StringComparison.InvariantCultureIgnoreCase);
             if (pos2 < 0) {
                 continue;
             }
 
-            var pos3 = contents.IndexOf("</div", pos2 + 1, StringComparison.InvariantCultureIgnoreCase);
+            int pos3 = contents.IndexOf("</div", pos2 + 1, StringComparison.InvariantCultureIgnoreCase);
             if (pos3 < 0) {
                 continue;
             }

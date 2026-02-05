@@ -292,7 +292,7 @@ public class CargoJobCollectionTest {
 }
 
 internal class CargoJobCollectionTestExecutionContext : IAsyncDisposable {
-    private static readonly IContainer _container = new ContainerBuilder().UsePegh("Cargobay", new DummyCsArgumentPrompter()).Build();
+    private static readonly IContainer _container = new ContainerBuilder().UsePegh("Cargobay").Build();
 
     internal string SampleRootFolder { get; private set; }
     internal string SampleFileSystemRootFolder { get; private set; }

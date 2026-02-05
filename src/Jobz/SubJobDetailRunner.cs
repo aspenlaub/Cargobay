@@ -20,9 +20,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz;
 public class SubJobDetailRunner(ISecretRepository secretRepository) : ISubJobDetailRunner {
     private const string _indent = "    ";
 
-    private readonly CargoHelper _CargoHelper = new(new ContainerBuilder().UsePegh("Cargobay", new DummyCsArgumentPrompter()).Build().Resolve<IFolderResolver>());
+    private readonly CargoHelper _CargoHelper = new(new ContainerBuilder().UsePegh("Cargobay").Build().Resolve<IFolderResolver>());
 
-    private async Task ExecutionLogEntryAsync(IApplicationCommandExecutionContext context, string caption, string value) {
+    private static async Task ExecutionLogEntryAsync(IApplicationCommandExecutionContext context, string caption, string value) {
         await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = _indent + (caption + "        ").Substring(0, 8) + " : " + value });
     }
 
@@ -36,7 +36,7 @@ public class SubJobDetailRunner(ISecretRepository secretRepository) : ISubJobDet
         }
     }
 
-    private async Task<bool> CleanUpAsync(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context) {
+    private static async Task<bool> CleanUpAsync(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context) {
         string fullName = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\' + subJobDetail.FileName;
         Debug.Assert(File.Exists(fullName), "File not found: " + fullName);
         File.Delete(fullName);
@@ -49,7 +49,7 @@ public class SubJobDetailRunner(ISecretRepository secretRepository) : ISubJobDet
         return true;
     }
 
-    private async Task<bool> TransferChangedAsync(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context) {
+    private static async Task<bool> TransferChangedAsync(SubJobDetail subJobDetail, Job job, SubJob subJob, IApplicationCommandExecutionContext context) {
         string fileName = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\' + subJobDetail.FileName;
         string destFileName = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedDestinationFolder) + '\\' + subJobDetail.FileName;
         Debug.Assert(File.Exists(fileName), "File not found: " + fileName);
@@ -135,7 +135,7 @@ public class SubJobDetailRunner(ISecretRepository secretRepository) : ISubJobDet
         return true;
     }
 
-    private async Task<bool> CompressFolderAsync(IFolder folderToCompress, ZipOutputStream zipStream, int folderOffset,
+    private static async Task<bool> CompressFolderAsync(IFolder folderToCompress, ZipOutputStream zipStream, int folderOffset,
                 IApplicationCommandExecutionContext context, IList<IUnwantedSubFolder> unwantedSubFolders) {
         if (folderToCompress.FullName.EndsWith(@"\packages")) { return true; }
         if (folderToCompress.FullName.EndsWith(@"\.git")) { return true; }
@@ -217,6 +217,10 @@ public class SubJobDetailRunner(ISecretRepository secretRepository) : ISubJobDet
             case CargoJobType.Upload: {
                 return await UploadAsync(subJobDetail, job, subJob, context, accessCodes);
             }
+            case CargoJobType.None:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
 
         return false;

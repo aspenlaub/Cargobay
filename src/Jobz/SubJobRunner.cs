@@ -15,37 +15,37 @@ using Autofac;
 namespace Aspenlaub.Net.GitHub.CSharp.Cargobay.Jobz;
 
 public class SubJobRunner : ISubJobRunner {
-    private readonly CargoHelper _CargoHelper = new(new ContainerBuilder().UsePegh("Cargobay", new DummyCsArgumentPrompter()).Build().Resolve<IFolderResolver>());
+    private readonly CargoHelper _CargoHelper = new(new ContainerBuilder().UsePegh("Cargobay").Build().Resolve<IFolderResolver>());
 
-    private void CreateCleanUpDetails(SubJob subJob, Job job, out string error) {
-        var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
+    private static void CreateCleanUpDetails(SubJob subJob, Job job, out string error) {
+        string folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
         error = CargoHelper.CheckFolder(folder, false, false);
         if (!string.IsNullOrEmpty(error)) {
             error = "";
             return;
         }
 
-        var dirInfo = CargoHelper.DirInfo(folder, out error);
+        DirectoryInfo dirInfo = CargoHelper.DirInfo(folder, out error);
         Debug.Assert(dirInfo != null);
         Debug.Assert(string.IsNullOrEmpty(error), error);
-        foreach (var jobDetail in dirInfo.GetFiles(subJob.Wildcard).Select(f
-                     => new SubJobDetail { FileName = f.Name, Description = string.Format(Properties.Resources.Deleting, f.Name) })) {
+        foreach (SubJobDetail jobDetail in dirInfo.GetFiles(subJob.Wildcard).Select(f
+                                                                                        => new SubJobDetail { FileName = f.Name, Description = string.Format(Properties.Resources.Deleting, f.Name) })) {
             subJob.SubJobDetails.Add(jobDetail);
         }
     }
 
-    private void CreateTransferChangedDetails(SubJob subJob, Job job) {
-        var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
+    private static void CreateTransferChangedDetails(SubJob subJob, Job job) {
+        string folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
         if (!Directory.Exists(folder)) { return; }
 
-        var destFolder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedDestinationFolder) + '\\';
+        string destFolder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedDestinationFolder) + '\\';
         if (!Directory.Exists(destFolder)) { return; }
 
-        var dirInfo = CargoHelper.DirInfo(folder, out var error);
+        DirectoryInfo dirInfo = CargoHelper.DirInfo(folder, out string error);
         Debug.Assert(string.IsNullOrEmpty(error), error);
-        var destDirInfo = CargoHelper.DirInfo(destFolder, out error);
+        DirectoryInfo destDirInfo = CargoHelper.DirInfo(destFolder, out error);
         Debug.Assert(string.IsNullOrEmpty(error), error);
-        foreach (var fileInfo in dirInfo.GetFiles(subJob.Wildcard)) {
+        foreach (FileInfo fileInfo in dirInfo.GetFiles(subJob.Wildcard)) {
             SubJobDetail jobDetail;
             if (destDirInfo.GetFiles(fileInfo.Name).Length == 0) {
                 jobDetail = new SubJobDetail {
@@ -68,10 +68,10 @@ public class SubJobRunner : ISubJobRunner {
         }
     }
 
-    private void CreateZipDetails(SubJob subJob, Job job) {
-        var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
-        var destFolder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedDestinationFolder) + '\\';
-        CargoHelper.DirInfo(folder, out var error);
+    private static void CreateZipDetails(SubJob subJob, Job job) {
+        string folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
+        string destFolder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedDestinationFolder) + '\\';
+        CargoHelper.DirInfo(folder, out string error);
         Debug.Assert(string.IsNullOrEmpty(error), error);
         CargoHelper.DirInfo(destFolder, out error);
         Debug.Assert(string.IsNullOrEmpty(error), error);
@@ -80,17 +80,17 @@ public class SubJobRunner : ISubJobRunner {
     }
 
     private async Task CreateUploadDetailsAsync(SubJob subJob, Job job, IApplicationCommandExecutionContext context, Dictionary<string, Login> accessCodes, CargoString error) {
-        var folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
-        var dirInfo = CargoHelper.DirInfo(folder, out var errorMessage);
+        string folder = CargoHelper.CombineFolders(job.AdjustedFolder, subJob.AdjustedFolder) + '\\';
+        DirectoryInfo dirInfo = CargoHelper.DirInfo(folder, out string errorMessage);
         Debug.Assert(errorMessage.Length == 0, errorMessage);
         var fileInfos = dirInfo.GetFiles(subJob.Wildcard).OrderByDescending(f => f.LastWriteTime).ToList();
         if (fileInfos.Count > 5) {
             await context.ReportAsync(new FeedbackToApplication {
                 Type = FeedbackType.LogInformation, Message = (Properties.Resources.Upload + "        ").Substring(0, 12) + " : " + Properties.Resources.UploadReducedToNewestFiveFiles
             });
-            fileInfos = fileInfos.Take(5).ToList();
+            fileInfos = [.. fileInfos.Take(5)];
         }
-        foreach (var fileInfo in fileInfos) {
+        foreach (FileInfo fileInfo in fileInfos) {
             if (await _CargoHelper.CanUploadAsync(subJob.Url + fileInfo.Name, accessCodes, error)) {
                 var jobDetail = new SubJobDetail {
                     FileName = fileInfo.Name,
@@ -107,15 +107,14 @@ public class SubJobRunner : ISubJobRunner {
         await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "    " + (caption + "        ").Substring(0, 8) + " : " + value });
     }
 
-    public string SubJobName(SubJob subJob) {
-        if (subJob.AdjustedDestinationFolder.Length != 0) {
-            return subJob.AdjustedDestinationFolder + '\\' + subJob.Wildcard;
-        }
-        if (subJob.AdjustedFolder.Length != 0) {
-            return subJob.AdjustedFolder + '\\' + subJob.Wildcard;
-        }
-
-        return subJob.Wildcard.Length != 0 ? subJob.Wildcard : "?";
+    public static string SubJobName(SubJob subJob) {
+        return subJob.AdjustedDestinationFolder.Length != 0
+            ? subJob.AdjustedDestinationFolder + '\\' + subJob.Wildcard
+            : subJob.AdjustedFolder.Length != 0
+                ? subJob.AdjustedFolder + '\\' + subJob.Wildcard
+                : subJob.Wildcard.Length != 0
+                    ? subJob.Wildcard
+                    : "?";
     }
 
     public async Task PreviewAsync(SubJob subJob, Job job, bool forExecutionLog, IApplicationCommandExecutionContext context, ISubJobDetailRunner runner, Dictionary<string, Login> accessCodes) {
@@ -132,7 +131,7 @@ public class SubJobRunner : ISubJobRunner {
 
         await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "    " });
         await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "    Subjob" });
-        var name = SubJobName(subJob);
+        string name = SubJobName(subJob);
         if (name.Length > 1) {
             await context.ReportAsync(new FeedbackToApplication { Type = FeedbackType.LogInformation, Message = "    " + name });
         }
@@ -152,7 +151,7 @@ public class SubJobRunner : ISubJobRunner {
         if (subJob.Url.Length != 0) {
             await ExecutionLogEntryAsync(context, Properties.Resources.Url, subJob.Url);
         }
-        foreach (var jobDetail in subJob.SubJobDetails) {
+        foreach (SubJobDetail jobDetail in subJob.SubJobDetails) {
             await runner.PreviewAsync(jobDetail, context);
         }
     }
@@ -161,7 +160,7 @@ public class SubJobRunner : ISubJobRunner {
         subJob.SubJobDetails.Clear();
         switch (job.JobType) {
             case CargoJobType.CleanUp: {
-                CreateCleanUpDetails(subJob, job, out var errorMessage);
+                CreateCleanUpDetails(subJob, job, out string errorMessage);
                 error.Value = errorMessage;
             }
                 break;
@@ -177,6 +176,10 @@ public class SubJobRunner : ISubJobRunner {
                 await CreateUploadDetailsAsync(subJob, job, context, accessCodes, error);
             }
                 break;
+            case CargoJobType.None:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
 
@@ -185,7 +188,7 @@ public class SubJobRunner : ISubJobRunner {
         await CreateDetailsAsync(subJob, job, context, accessCodes, error);
         if (error.Value.Length != 0) { return false; }
 
-        foreach (var nextSubJobDetail in subJob.SubJobDetails) {
+        foreach (SubJobDetail nextSubJobDetail in subJob.SubJobDetails) {
             if (!await runner.RunAsync(nextSubJobDetail, today, job, subJob, context, crypticKey, accessCodes)) { return false; }
         }
 
