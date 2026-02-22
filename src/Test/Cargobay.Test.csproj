@@ -17,9 +17,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <PackageReference Include="Seoa" Version="2.0.2401.911" />
+    <ProjectReference Include="..\Cargobay.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Cargobay.csproj" />
+    <PackageReference Include="Seoa" Version="2.0.2405.915" />
   </ItemGroup>
 </Project>
