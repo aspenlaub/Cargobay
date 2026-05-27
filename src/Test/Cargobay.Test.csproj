@@ -2,7 +2,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <LangVersion>latest</LangVersion>
+    <RestoreEnablePackagePruning>false</RestoreEnablePackagePruning>
+    <AssetTargetFallback>net10.0</AssetTargetFallback>
+<LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
     <GenerateBuildInfoConfigFile>false</GenerateBuildInfoConfigFile>
     <RootNamespace>Aspenlaub.Net.GitHub.CSharp.Cargobay.Test</RootNamespace>

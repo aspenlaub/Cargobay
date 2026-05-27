@@ -3,6 +3,8 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
+    <RestoreEnablePackagePruning>false</RestoreEnablePackagePruning>
+    <AssetTargetFallback>net10.0</AssetTargetFallback>
     <UseWPF>true</UseWPF>
     <LangVersion>latest</LangVersion>
     <ProjectGuid>{78C3B290-ECE4-4108-839A-6723D1A9B514}</ProjectGuid>
