@@ -22,6 +22,6 @@
     <ProjectReference Include="..\Cargobay.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Seoa" Version="2.0.2512.1119" />
+    <PackageReference Include="Seoa" Version="2.0.2522.888" />
   </ItemGroup>
 </Project>
