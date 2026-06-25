@@ -15,6 +15,7 @@
     <AssemblyProduct>Aspenlaub.Net.GitHub.CSharp.Cargobay.Test</AssemblyProduct>
     <ProjectGuid>{3D6B9265-68B6-46E0-A61C-7404F0DEC0F2}</ProjectGuid>
     <OutputType>Library</OutputType>
+    <MSBuildEnableWorkloadResolver>false</MSBuildEnableWorkloadResolver>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
