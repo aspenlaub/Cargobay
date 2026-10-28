@@ -137,17 +137,12 @@ public class SubJobDetailRunner(ISecretRepository secretRepository) : ISubJobDet
     }
 
     private static async Task<bool> CompressFolderAsync(IFolder folderToCompress, ZipOutputStream zipStream, int folderOffset,
-                IApplicationCommandExecutionContext context, IList<IUnwantedSubFolder> unwantedSubFolders) {
-        if (folderToCompress.FullName.EndsWith(@"\packages")) { return true; }
-        if (folderToCompress.FullName.EndsWith(@"\.git")) { return true; }
-        if (folderToCompress.FullName.EndsWith(@"\.vs")) { return true; }
-        if (folderToCompress.FullName.EndsWith(@"\tools")) { return true; }
-        if (folderToCompress.FullName.EndsWith(@"\artifacts")) { return true; }
-        if (folderToCompress.FullName.EndsWith(@"\obj")) { return true; }
-        if (folderToCompress.FullName.EndsWith(@"\bin")) { return true; }
-        if (folderToCompress.FullName.EndsWith(@"\temp")) { return true; }
-        if (folderToCompress.FullName.EndsWith(@"\TestResults")) { return true; }
-        if (unwantedSubFolders.Any(f => folderToCompress.FullName.Contains(f.SubFolder, StringComparison.CurrentCultureIgnoreCase))) { return true; }
+                IApplicationCommandExecutionContext context,
+                // ReSharper disable once ParameterTypeCanBeEnumerable.Local
+                IList<IUnwantedSubFolder> unwantedSubFolders) {
+        if (unwantedSubFolders.Any(f => folderToCompress.FullName.Contains(f.SubFolder, StringComparison.Ordinal))) {
+            return true;
+        }
 
         string[] files;
         try {
