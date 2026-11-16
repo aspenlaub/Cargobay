@@ -4,7 +4,6 @@
     <TargetFramework>net11.0-windows</TargetFramework>
     <RestoreEnablePackagePruning>false</RestoreEnablePackagePruning>
     <AssetTargetFallback>net11.0</AssetTargetFallback>
-    <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
     <GenerateBuildInfoConfigFile>false</GenerateBuildInfoConfigFile>
     <RootNamespace>Aspenlaub.Net.GitHub.CSharp.Cargobay.Test</RootNamespace>
